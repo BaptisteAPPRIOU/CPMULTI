@@ -12,7 +12,7 @@ class GreyScaleFilter {
     GreyScaleFilter(); 
     ~GreyScaleFilter(); 
 
-    void applyFilter(const cv::Mat& inputFrame);
+    Mat applyFilter(const cv::Mat& inputFrame);
     string getWindowName() const;
 
   private:

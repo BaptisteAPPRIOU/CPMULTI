@@ -12,7 +12,7 @@ class WebcamOperations
     WebcamOperations();
     ~WebcamOperations();
     void openWebcam();
-    void takeSnapShot();
+    void takeSnapShot(const cv::Mat& inputFrame, const std::string& filename);
     void saveSnapShot();
     void closeWebcam();
     void setResourcesPath(const std::string& path);

@@ -2,6 +2,7 @@
 #include <iostream>
 #include <filesystem>
 #include "Headers/GreyScaleFilter.hpp"
+#include "CannyBorderDetection.hpp"
 
 // Constructor
 WebcamOperations::WebcamOperations() {
@@ -19,10 +20,14 @@ void WebcamOperations::openWebcam() {
         cerr << "Error: Unable to access the webcam." << endl;
         return;
     }
-    cout << "Webcam opened successfully. Press 'g' to show greyscale feed, 'q' to quit." << endl;
+    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'c' for Canny edge detection, 'f' to take a snapshot, and 'q' to quit." << endl;
 
     GreyScaleFilter greyFilter;
+    CannyBorderDetection cannyFilter;
     bool showGreyScale = false;
+    bool showCanny = false;
+
+    cv::Mat greyFrame, cannyFrame;
 
     while (true) {
         cap >> frame;
@@ -36,7 +41,12 @@ void WebcamOperations::openWebcam() {
 
         // Display greyscale feed if enabled
         if (showGreyScale) {
-            greyFilter.applyFilter(frame);
+            greyFrame = greyFilter.applyFilter(frame);
+        }
+
+        // Display Canny edge detection feed if enabled
+        if (showCanny) {
+            cannyFrame = cannyFilter.applyFilter(frame);
         }
 
         // Handle key presses
@@ -49,23 +59,42 @@ void WebcamOperations::openWebcam() {
             if (!showGreyScale) {
                 destroyWindow(greyFilter.getWindowName());
             }
+        } else if (key == 'c') {
+            // Toggle Canny edge detection feed on/off
+            showCanny = !showCanny;
+            if (!showCanny) {
+                destroyWindow(cannyFilter.getWindowName());
+            }
         } else if (key == 'f') {
-            takeSnapShot();
+            // Take snapshots of all active feeds
+            if (!frame.empty()) {
+                takeSnapShot(frame, "original_snapshot.jpg");
+            }
+            if (showGreyScale && !greyFrame.empty()) {
+                takeSnapShot(greyFrame, "greyscale_snapshot.jpg");
+            }
+            if (showCanny && !cannyFrame.empty()) {
+                takeSnapShot(cannyFrame, "canny_snapshot.jpg");
+            }
         }
     }
 }
 
+
 // Take a Snapshot
-void WebcamOperations::takeSnapShot() {
-    if (frame.empty()) {
+void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string& filename) {
+    if (inputFrame.empty()) {
         cerr << "Error: No frame available to take a snapshot." << endl;
         return;
     }
 
-    snapshot = frame.clone(); // Store the snapshot
+    // Save the provided frame as the snapshot
+    snapshot = inputFrame.clone();
+    snapShotName = filename; // Set the filename for saving
     cout << "Snapshot taken and stored in memory." << endl;
     saveSnapShot();
 }
+
 
 
 // Save the Snapshot
