@@ -5,8 +5,6 @@ int main() {
 
     webcam.setResourcesPath("../resources");
     webcam.openWebcam();
-    webcam.takeSnapShot();
-    webcam.saveSnapShot();
     webcam.closeWebcam();
 
     return 0;

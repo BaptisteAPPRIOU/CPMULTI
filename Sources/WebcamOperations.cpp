@@ -1,6 +1,7 @@
 #include "Headers/WebcamOperations.hpp"
 #include <iostream>
 #include <filesystem>
+#include "Headers/GreyScaleFilter.hpp"
 
 // Constructor
 WebcamOperations::WebcamOperations() {
@@ -18,7 +19,10 @@ void WebcamOperations::openWebcam() {
         cerr << "Error: Unable to access the webcam." << endl;
         return;
     }
-    cout << "Webcam opened successfully." << endl;
+    cout << "Webcam opened successfully. Press 'g' to show greyscale feed, 'q' to quit." << endl;
+
+    GreyScaleFilter greyFilter;
+    bool showGreyScale = false;
 
     while (true) {
         cap >> frame;
@@ -27,14 +31,26 @@ void WebcamOperations::openWebcam() {
             break;
         }
 
+        // Display the original feed
         imshow(windowName, frame);
+
+        // Display greyscale feed if enabled
+        if (showGreyScale) {
+            greyFilter.applyFilter(frame);
+        }
+
+        // Handle key presses
         char key = waitKey(10);
         if (key == 'q') {
             break;
+        } else if (key == 'g') {
+            // Toggle greyscale feed on/off
+            showGreyScale = !showGreyScale;
+            if (!showGreyScale) {
+                destroyWindow(greyFilter.getWindowName());
+            }
         } else if (key == 'f') {
-            // Take a snapshot and save it
             takeSnapShot();
-            saveSnapShot();
         }
     }
 }
