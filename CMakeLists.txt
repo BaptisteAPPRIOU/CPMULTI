@@ -1,45 +1,56 @@
-cmake_minimum_required(VERSION 3.10)
-
-# Project Name
-project(CPMULTI)
+cmake_minimum_required(VERSION 3.16)
+project(CPMULTI VERSION 0.1 LANGUAGES CXX)
 
 # Specify C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Include OpenCV
+# Find OpenCV first
 find_package(OpenCV REQUIRED)
 
-# Detect platform for OS-specific configurations 
-if(APPLE)
-    message(STATUS "Compiling for macOS")
-    # macOS-specific flags (if any)
-elseif(WIN32)
-    message(STATUS "Compiling for Windows")
-    # Windows-specific flags (if any)
-endif()
+# Define directories for sources, headers, and resources
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/Sources")
+set(HEADER_DIR "${CMAKE_SOURCE_DIR}/Headers")
+set(RESOURCE_DIR "${CMAKE_SOURCE_DIR}/resources")
 
-# Source and Header Files
-# Collect all .cpp and .hpp files from their respective directories and subdirectories
-file(GLOB_RECURSE SOURCES "Sources/*.cpp")
-file(GLOB_RECURSE HEADERS "Headers/*.hpp")
+# Debug output to verify paths
+message(STATUS "Source directory: ${SOURCE_DIR}")
+message(STATUS "Header directory: ${HEADER_DIR}")
+message(STATUS "Resource directory: ${RESOURCE_DIR}")
 
-# Add executable
-add_executable(CPMULTI main.cpp ${SOURCES} ${HEADERS})
+# Automatically collect all .cpp and .hpp files
+file(GLOB_RECURSE PROJECT_SOURCES 
+    "${SOURCE_DIR}/*.cpp"
+    "${CMAKE_SOURCE_DIR}/main.cpp"
+)
+file(GLOB_RECURSE PROJECT_HEADERS "${HEADER_DIR}/*.hpp")
 
-# Include directories
-include_directories(${OpenCV_INCLUDE_DIRS} Headers)
+# Output found files for debugging
+message(STATUS "Found source files: ${PROJECT_SOURCES}")
+message(STATUS "Found header files: ${PROJECT_HEADERS}")
 
-# Link Libraries
-target_link_libraries(CPMULTI ${OpenCV_LIBS})
+# Add executable target
+add_executable(CPMULTI ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 
-# Copy resource files to the output directory
-file(GLOB RESOURCES "resources/*")
+# Include header directories and link libraries (only once)
+target_include_directories(CPMULTI PRIVATE 
+    ${CMAKE_SOURCE_DIR}
+    ${HEADER_DIR} 
+    ${OpenCV_INCLUDE_DIRS}
+)
+
+# Link OpenCV libraries
+target_link_libraries(CPMULTI PRIVATE ${OpenCV_LIBS})
+
+# Create resources directory in build
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/resources)
+
+# Copy resources to the build directory
+file(GLOB RESOURCES "${RESOURCE_DIR}/*")
 foreach(RESOURCE ${RESOURCES})
     configure_file(${RESOURCE} ${CMAKE_BINARY_DIR}/resources COPYONLY)
 endforeach()
 
-# Output messages
-message(STATUS "Sources: ${SOURCES}")
-message(STATUS "Headers: ${HEADERS}")
-message(STATUS "Resources: ${RESOURCES}")
+# Output final diagnostic messages
+message(STATUS "OpenCV libraries: ${OpenCV_LIBS}")
+message(STATUS "Resources to copy: ${RESOURCES}")
