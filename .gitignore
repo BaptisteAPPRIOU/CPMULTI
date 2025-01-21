@@ -41,3 +41,7 @@
 */cmake_install.cmake
 .DS_Store
 CPMULTI
+
+.vscode
+.vs
+build
