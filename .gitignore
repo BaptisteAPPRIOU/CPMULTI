@@ -1,0 +1,16 @@
+# Dossier build
+build/
+# Fichiers Visual Studio
+.vs/
+out/
+*.user
+*.filters
+*.vcxproj
+# Fichiers compilés
+*.exe
+*.dll
+*.lib
+*.obj
+# Images de test
+*.jpg
+*.png
