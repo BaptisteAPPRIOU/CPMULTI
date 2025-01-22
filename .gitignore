@@ -43,3 +43,6 @@
 CPMULTI
 
 .vscode
+.idea
+*cmake-build-debug
+*build
