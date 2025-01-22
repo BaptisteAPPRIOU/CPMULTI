@@ -1,7 +1,7 @@
 #include "Headers/GreyScaleFilter.hpp"
 
 GreyScaleFilter::GreyScaleFilter() {
-    namedWindow(windowName, WINDOW_NORMAL);
+    // namedWindow(windowName, WINDOW_NORMAL);
 }
 
 GreyScaleFilter::~GreyScaleFilter() {
