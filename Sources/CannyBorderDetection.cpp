@@ -1,12 +1,12 @@
 #include "Headers/CannyBorderDetection.hpp"
 
 CannyBorderDetection::CannyBorderDetection() {
-    namedWindow(windowName, WINDOW_NORMAL);
-    namedWindow("Trackbars", WINDOW_NORMAL);
+    // namedWindow(windowName, WINDOW_NORMAL);
+    // namedWindow("Trackbars", WINDOW_NORMAL);
 
-    // Create trackbars for threshold values
-    createTrackbar("Threshold 1", "Trackbars", &threshold1, 400);
-    createTrackbar("Threshold 2", "Trackbars", &threshold2, 500);
+    // // Create trackbars for threshold values
+    // createTrackbar("Threshold 1", "Trackbars", &threshold1, 400);
+    // createTrackbar("Threshold 2", "Trackbars", &threshold2, 500);
 }
 
 CannyBorderDetection::~CannyBorderDetection() {
@@ -15,6 +15,12 @@ CannyBorderDetection::~CannyBorderDetection() {
 }
 
 cv::Mat CannyBorderDetection::applyFilter(const cv::Mat& inputFrame) {
+
+    namedWindow("Trackbars", WINDOW_NORMAL);
+
+    // Create trackbars for threshold values
+    createTrackbar("Threshold 1", "Trackbars", &threshold1, 400);
+    createTrackbar("Threshold 2", "Trackbars", &threshold2, 500);
     if (inputFrame.empty()) {
         cerr << "Error: Empty input frame provided to CannyBorderDetection." << endl;
         return cv::Mat(); // Return an empty frame

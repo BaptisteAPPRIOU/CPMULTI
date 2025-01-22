@@ -42,6 +42,8 @@
 .DS_Store
 CPMULTI
 
+.vs
 .vscode
 .idea
 *cmake-build-debug
+*build
