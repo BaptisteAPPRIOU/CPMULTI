@@ -4,6 +4,8 @@
 #include "Headers/GreyScaleFilter.hpp"
 #include "Headers/CannyBorderDetection.hpp"
 #include "Headers/FaceDetection.hpp"
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 // Constructor
 WebcamOperations::WebcamOperations() {
@@ -34,6 +36,10 @@ void WebcamOperations::openWebcam() {
 
     while (true) {
         cap >> frame;
+
+        cap.set(3, 640); // Set the width
+        cap.set(4, 480); // Set the height
+        
         if (frame.empty()) {
             cerr << "Error: Empty frame captured." << endl;
             break;
@@ -73,7 +79,7 @@ void WebcamOperations::openWebcam() {
             // Toggle Canny edge detection feed on/off
             showCanny = !showCanny;
             if (!showCanny) {
-                destroyWindow(cannyFilter.getWindowName());
+                cannyFilter.destroyWindows();
             }
         } else if (key == 'f') {
             // Take snapshots of all active feeds
