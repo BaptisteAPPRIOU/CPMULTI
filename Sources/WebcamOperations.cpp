@@ -1,6 +1,7 @@
 #include "Headers/WebcamOperations.hpp"
 #include <iostream>
 #include <filesystem>
+#include <thread>
 #include "Headers/GreyScaleFilter.hpp"
 #include "Headers/CannyBorderDetection.hpp"
 #include "Headers/FaceDetection.hpp"
@@ -29,8 +30,12 @@ void WebcamOperations::openWebcam() {
     bool showGreyScale = false;
     bool showCanny = false;
     bool showFace = false;
+    bool isShowGreyScaleActive = false;
+    bool isShowCannyActive = false;
+    bool isShowFaceActive = false;
 
     cv::Mat greyFrame, cannyFrame, faceFrame;
+    std::thread greyThread, cannyThread, faceThread;
 
     while (true) {
         cap >> frame;
@@ -43,21 +48,35 @@ void WebcamOperations::openWebcam() {
         imshow(windowName, frame);
 
         // Display greyscale feed if enabled
-        if (showGreyScale) {
-            greyFrame = greyFilter.applyFilter(frame);
+        if (showGreyScale && !isShowGreyScaleActive) {
+            if (greyThread.joinable()) greyThread.join();
+            greyThread = std::thread([&]() {
+                greyFrame = greyFilter.applyFilter(frame);
+            });
+            cout << "Greyscale feed enabled." << endl;
+            isShowGreyScaleActive = true;
         }
 
         // Display Canny edge detection feed if enabled
-        if (showCanny) {
-            cannyFrame = cannyFilter.applyFilter(frame);
+        if (showCanny && !isShowCannyActive) {
+            if (cannyThread.joinable()) cannyThread.join();
+            cannyThread = std::thread([&]() {
+                cannyFrame = cannyFilter.applyFilter(frame);
+            });
+            cout << "Canny edge detection feed enabled." << endl;
+            isShowCannyActive = true;
         }
 
         // Display face detection feed if enabled
-        if (showFace) {
-            faceFrame = faceFilter.applyFilter(frame);
-            imshow(faceFilter.getWindowName(), faceFrame);
+        if (showFace && !isShowFaceActive) {
+            if (faceThread.joinable()) faceThread.join();
+            faceThread = std::thread([&]() {
+                faceFrame = faceFilter.applyFilter(frame);
+                imshow(faceFilter.getWindowName(), faceFrame);
+            });
+            cout << "Face detection feed enabled." << endl;
+            isShowFaceActive = true;
         }
-
 
         // Handle key presses
         char key = waitKey(10);
@@ -66,14 +85,20 @@ void WebcamOperations::openWebcam() {
         } else if (key == 'g') {
             // Toggle greyscale feed on/off
             showGreyScale = !showGreyScale;
-            if (!showGreyScale) {
+            if (!showGreyScale && isShowGreyScaleActive) {
+                if (greyThread.joinable()) greyThread.join();
                 destroyWindow(greyFilter.getWindowName());
+                cout << "Greyscale feed disabled." << endl;
+                isShowGreyScaleActive = false;
             }
         } else if (key == 'c') {
             // Toggle Canny edge detection feed on/off
             showCanny = !showCanny;
-            if (!showCanny) {
+            if (!showCanny && isShowCannyActive) {
+                if (cannyThread.joinable()) cannyThread.join();
                 destroyWindow(cannyFilter.getWindowName());
+                cout << "Canny edge detection feed disabled." << endl;
+                isShowCannyActive = false;
             }
         } else if (key == 'f') {
             // Take snapshots of all active feeds
@@ -89,13 +114,20 @@ void WebcamOperations::openWebcam() {
         } else if (key == 'h') {
             // Toggle face detection feed on/off
             showFace = !showFace;
-            if (!showFace) {
+            if (!showFace && isShowFaceActive) {
+                if (faceThread.joinable()) faceThread.join();
                 destroyWindow(faceFilter.getWindowName());
+                cout << "Face detection feed disabled." << endl;
+                isShowFaceActive = false;
             }
         }
     }
-}
 
+    // Join threads before exiting
+    if (greyThread.joinable()) greyThread.join();
+    if (cannyThread.joinable()) cannyThread.join();
+    if (faceThread.joinable()) faceThread.join();
+}
 
 // Take a Snapshot
 void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string& filename) {
@@ -110,8 +142,6 @@ void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string
     cout << "Snapshot taken and stored in memory." << endl;
     saveSnapShot();
 }
-
-
 
 // Save the Snapshot
 void WebcamOperations::saveSnapShot() {
@@ -144,8 +174,6 @@ void WebcamOperations::saveSnapShot() {
         cerr << "Error: Unable to save the snapshot." << endl;
     }
 }
-
-
 
 // Close the Webcam
 void WebcamOperations::closeWebcam() {
