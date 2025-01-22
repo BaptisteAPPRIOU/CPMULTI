@@ -2,7 +2,8 @@
 #include <iostream>
 #include <filesystem>
 #include "Headers/GreyScaleFilter.hpp"
-#include "CannyBorderDetection.hpp"
+#include "Headers/CannyBorderDetection.hpp"
+#include "Headers/FaceDetection.hpp"
 
 // Constructor
 WebcamOperations::WebcamOperations() {
@@ -20,14 +21,16 @@ void WebcamOperations::openWebcam() {
         cerr << "Error: Unable to access the webcam." << endl;
         return;
     }
-    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'c' for Canny edge detection, 'f' to take a snapshot, and 'q' to quit." << endl;
+    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'c' for Canny edge detection, 'f' to take a snapshot, 'h' for face detection, and 'q' to quit." << endl;
 
     GreyScaleFilter greyFilter;
     CannyBorderDetection cannyFilter;
+    FaceDetection faceFilter;
     bool showGreyScale = false;
     bool showCanny = false;
+    bool showFace = false;
 
-    cv::Mat greyFrame, cannyFrame;
+    cv::Mat greyFrame, cannyFrame, faceFrame;
 
     while (true) {
         cap >> frame;
@@ -48,6 +51,13 @@ void WebcamOperations::openWebcam() {
         if (showCanny) {
             cannyFrame = cannyFilter.applyFilter(frame);
         }
+
+        // Display face detection feed if enabled
+        if (showFace) {
+            faceFrame = faceFilter.applyFilter(frame);
+            imshow(faceFilter.getWindowName(), faceFrame);
+        }
+
 
         // Handle key presses
         char key = waitKey(10);
@@ -75,6 +85,12 @@ void WebcamOperations::openWebcam() {
             }
             if (showCanny && !cannyFrame.empty()) {
                 takeSnapShot(cannyFrame, "canny_snapshot.jpg");
+            }
+        } else if (key == 'h') {
+            // Toggle face detection feed on/off
+            showFace = !showFace;
+            if (!showFace) {
+                destroyWindow(faceFilter.getWindowName());
             }
         }
     }
