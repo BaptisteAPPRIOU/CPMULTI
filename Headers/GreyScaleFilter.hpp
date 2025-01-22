@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include <string>
+#include <chrono>
 
 using namespace cv;
 using namespace std;
@@ -17,6 +18,8 @@ class GreyScaleFilter {
 
   private:
     string windowName = "Greyscale Feed";
+    chrono::microseconds totalTime;
+    int frameCount;
 };
 
 #endif // GREYSCALEFILTER_HPP
