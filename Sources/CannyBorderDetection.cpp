@@ -1,12 +1,9 @@
 #include "Headers/CannyBorderDetection.hpp"
 
-CannyBorderDetection::CannyBorderDetection() {
-    // namedWindow(windowName, WINDOW_NORMAL);
-    // namedWindow("Trackbars", WINDOW_NORMAL);
+void onTrackbarChange(int, void*) {
+}
 
-    // // Create trackbars for threshold values
-    // createTrackbar("Threshold 1", "Trackbars", &threshold1, 400);
-    // createTrackbar("Threshold 2", "Trackbars", &threshold2, 500);
+CannyBorderDetection::CannyBorderDetection() : threshold1(100), threshold2(200) {
 }
 
 CannyBorderDetection::~CannyBorderDetection() {
@@ -14,26 +11,42 @@ CannyBorderDetection::~CannyBorderDetection() {
     destroyWindow("Trackbars");
 }
 
-cv::Mat CannyBorderDetection::applyFilter(const cv::Mat& inputFrame) {
+void CannyBorderDetection::destroyWindows() {
+    if (isWindowCreated) {
+        destroyWindow(windowName);
+        destroyWindow("Trackbars");
+        isWindowCreated = false;
+    }
+}
 
-    namedWindow("Trackbars", WINDOW_NORMAL);
-
-    // Create trackbars for threshold values
-    createTrackbar("Threshold 1", "Trackbars", &threshold1, 400);
-    createTrackbar("Threshold 2", "Trackbars", &threshold2, 500);
+Mat CannyBorderDetection::applyFilter(const Mat& inputFrame) {
     if (inputFrame.empty()) {
         cerr << "Error: Empty input frame provided to CannyBorderDetection." << endl;
-        return cv::Mat(); // Return an empty frame
+        return Mat();
     }
 
-    cv::Mat edges;
-    // Apply Canny edge detection with the current threshold values
-    Canny(inputFrame, edges, threshold1, threshold2, 3);
+    if (!isWindowCreated) {
+        namedWindow(windowName, WINDOW_NORMAL);
+        namedWindow("Trackbars", WINDOW_NORMAL);
 
-    // Display the edges
+        createTrackbar("Threshold 1", "Trackbars", nullptr, 400, onTrackbarChange);
+        createTrackbar("Threshold 2", "Trackbars", nullptr, 500, onTrackbarChange);
+        
+        setTrackbarPos("Threshold 1", "Trackbars", threshold1);
+        setTrackbarPos("Threshold 2", "Trackbars", threshold2);
+
+        isWindowCreated = true;
+    }
+
+    // Get current positions of trackbars
+    threshold1 = getTrackbarPos("Threshold 1", "Trackbars");
+    threshold2 = getTrackbarPos("Threshold 2", "Trackbars");
+
+    Mat edges;
+    Canny(inputFrame, edges, threshold1, threshold2, 3);
     imshow(windowName, edges);
 
-    return edges; // Return the processed edges for further use
+    return edges;
 }
 
 
