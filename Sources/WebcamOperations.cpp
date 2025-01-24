@@ -18,90 +18,24 @@ WebcamOperations::~WebcamOperations() {
 }
 
 // Open Webcam
+
 void WebcamOperations::openWebcam() {
     if (!cap.open(0)) {
         cerr << "Error: Unable to access the webcam." << endl;
         return;
     }
-    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'c' for Canny edge detection, 'f' to take a snapshot, 'h' for face detection, and 'q' to quit." << endl;
 
-    GreyScaleFilter greyFilter;
-    CannyBorderDetection cannyFilter;
-    FaceDetection faceFilter;
-    bool showGreyScale = false;
-    bool showCanny = false;
-    bool showFace = false;
-
-    cv::Mat greyFrame, cannyFrame, faceFrame;
+    cap >> frame;
+    imshow(windowName, frame);
 
     while (true) {
         cap >> frame;
-
-        cap.set(3, 640); // Set the width
-        cap.set(4, 480); // Set the height
-        
-        if (frame.empty()) {
-            cerr << "Error: Empty frame captured." << endl;
-            break;
-        }
-
-        // Display the original feed
         imshow(windowName, frame);
 
-        // Display greyscale feed if enabled
-        if (showGreyScale) {
-            greyFrame = greyFilter.applyFilter(frame);
-        }
-
-        // Display Canny edge detection feed if enabled
-        if (showCanny) {
-            cannyFrame = cannyFilter.applyFilter(frame);
-        }
-
-        // Display face detection feed if enabled
-        if (showFace) {
-            faceFrame = faceFilter.applyFilter(frame);
-            imshow(faceFilter.getWindowName(), faceFrame);
-        }
-
-
-        // Handle key presses
         char key = waitKey(10);
-        if (key == 'q') {
-            break;
-        } else if (key == 'g') {
-            // Toggle greyscale feed on/off
-            showGreyScale = !showGreyScale;
-            if (!showGreyScale) {
-                destroyWindow(greyFilter.getWindowName());
-            }
-        } else if (key == 'c') {
-            // Toggle Canny edge detection feed on/off
-            showCanny = !showCanny;
-            if (!showCanny) {
-                cannyFilter.destroyWindows();
-            }
-        } else if (key == 'f') {
-            // Take snapshots of all active feeds
-            if (!frame.empty()) {
-                takeSnapShot(frame, "original_snapshot.jpg");
-            }
-            if (showGreyScale && !greyFrame.empty()) {
-                takeSnapShot(greyFrame, "greyscale_snapshot.jpg");
-            }
-            if (showCanny && !cannyFrame.empty()) {
-                takeSnapShot(cannyFrame, "canny_snapshot.jpg");
-            }
-        } else if (key == 'h') {
-            // Toggle face detection feed on/off
-            showFace = !showFace;
-            if (!showFace) {
-                destroyWindow(faceFilter.getWindowName());
-            }
-        }
+        if (key == 'q') break;
     }
 }
-
 
 // Take a Snapshot
 void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string& filename) {
@@ -116,8 +50,6 @@ void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string
     cout << "Snapshot taken and stored in memory." << endl;
     saveSnapShot();
 }
-
-
 
 // Save the Snapshot
 void WebcamOperations::saveSnapShot() {
@@ -150,8 +82,6 @@ void WebcamOperations::saveSnapShot() {
         cerr << "Error: Unable to save the snapshot." << endl;
     }
 }
-
-
 
 // Close the Webcam
 void WebcamOperations::closeWebcam() {

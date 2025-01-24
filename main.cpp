@@ -1,11 +1,8 @@
-#include "Headers/WebcamOperations.hpp"
+#include "Menu.hpp"
 
 int main() {
-    WebcamOperations webcam;
-
-    webcam.setResourcesPath("../resources");
-    webcam.openWebcam();
-    webcam.closeWebcam();
+    Menu menu;
+    menu.run();
 
     return 0;
 }
