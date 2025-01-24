@@ -46,16 +46,26 @@ void WebcamOperations::openWebcam() {
             break;
         } else if (key == 'g') {
             // Apply greyscale filter to the current frame in 3 different threads
+            takeSnapShot(frame, "snapshot.jpg");
+
+            // Load the saved snapshot
+            cv::Mat savedSnapshot = cv::imread(resourcesPath + "/snapshot.jpg");
+            if (savedSnapshot.empty()) {
+                cerr << "Error: Unable to load the saved snapshot." << endl;
+                return;
+            }
+
+            // Apply greyscale filter to the saved snapshot in 3 different threads
             greyThread1 = std::thread([&]() {
-                greyFrame1 = greyFilter.applyFilter(frame);
+                greyFrame1 = greyFilter.applyFilter(savedSnapshot);
                 imshow(greyFilter.getWindowName() + "_1", greyFrame1);
             });
             greyThread2 = std::thread([&]() {
-                greyFrame2 = greyFilter.applyFilter(frame);
+                greyFrame2 = greyFilter.applyFilter(savedSnapshot);
                 imshow(greyFilter.getWindowName() + "_2", greyFrame2);
             });
             greyThread3 = std::thread([&]() {
-                greyFrame3 = greyFilter.applyFilter(frame);
+                greyFrame3 = greyFilter.applyFilter(savedSnapshot);
                 imshow(greyFilter.getWindowName() + "_3", greyFrame3);
             });
 
@@ -66,6 +76,11 @@ void WebcamOperations::openWebcam() {
 
             // Wait indefinitely until a key is pressed
             waitKey(0);
+        } else if (key == 'f') {
+            // Take snapshots of all active feeds
+            if (!frame.empty()) {
+                takeSnapShot(frame, "original_snapshot.jpg");
+            }
         }
     }
 
