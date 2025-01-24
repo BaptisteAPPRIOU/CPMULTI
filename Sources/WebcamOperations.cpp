@@ -3,8 +3,6 @@
 #include <filesystem>
 #include <thread>
 #include "Headers/GreyScaleFilter.hpp"
-#include "Headers/CannyBorderDetection.hpp"
-#include "Headers/FaceDetection.hpp"
 
 // Constructor
 WebcamOperations::WebcamOperations() {
@@ -22,20 +20,15 @@ void WebcamOperations::openWebcam() {
         cerr << "Error: Unable to access the webcam." << endl;
         return;
     }
-    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'c' for Canny edge detection, 'f' to take a snapshot, 'h' for face detection, and 'q' to quit." << endl;
+    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'q' to quit." << endl;
 
     GreyScaleFilter greyFilter;
-    CannyBorderDetection cannyFilter;
-    FaceDetection faceFilter;
     bool showGreyScale = false;
-    bool showCanny = false;
-    bool showFace = false;
-    bool isShowGreyScaleActive = false;
-    bool isShowCannyActive = false;
-    bool isShowFaceActive = false;
-
-    cv::Mat greyFrame, cannyFrame, faceFrame;
-    std::thread greyThread, cannyThread, faceThread;
+    // Set the window size to 400x300
+    namedWindow(windowName, cv::WINDOW_NORMAL);
+    resizeWindow(windowName, 400, 300);
+    cv::Mat greyFrame1, greyFrame2, greyFrame3;
+    std::thread greyThread1, greyThread2, greyThread3;
 
     while (true) {
         cap >> frame;
@@ -47,86 +40,39 @@ void WebcamOperations::openWebcam() {
         // Display the original feed
         imshow(windowName, frame);
 
-        // Display greyscale feed if enabled
-        if (showGreyScale && !isShowGreyScaleActive) {
-            if (greyThread.joinable()) greyThread.join();
-            greyThread = std::thread([&]() {
-                greyFrame = greyFilter.applyFilter(frame);
-            });
-            cout << "Greyscale feed enabled." << endl;
-            isShowGreyScaleActive = true;
-        }
-
-        // Display Canny edge detection feed if enabled
-        if (showCanny && !isShowCannyActive) {
-            if (cannyThread.joinable()) cannyThread.join();
-            cannyThread = std::thread([&]() {
-                cannyFrame = cannyFilter.applyFilter(frame);
-            });
-            cout << "Canny edge detection feed enabled." << endl;
-            isShowCannyActive = true;
-        }
-
-        // Display face detection feed if enabled
-        if (showFace && !isShowFaceActive) {
-            if (faceThread.joinable()) faceThread.join();
-            faceThread = std::thread([&]() {
-                faceFrame = faceFilter.applyFilter(frame);
-                imshow(faceFilter.getWindowName(), faceFrame);
-            });
-            cout << "Face detection feed enabled." << endl;
-            isShowFaceActive = true;
-        }
-
         // Handle key presses
         char key = waitKey(10);
         if (key == 'q') {
             break;
         } else if (key == 'g') {
-            // Toggle greyscale feed on/off
-            showGreyScale = !showGreyScale;
-            if (!showGreyScale && isShowGreyScaleActive) {
-                if (greyThread.joinable()) greyThread.join();
-                destroyWindow(greyFilter.getWindowName());
-                cout << "Greyscale feed disabled." << endl;
-                isShowGreyScaleActive = false;
-            }
-        } else if (key == 'c') {
-            // Toggle Canny edge detection feed on/off
-            showCanny = !showCanny;
-            if (!showCanny && isShowCannyActive) {
-                if (cannyThread.joinable()) cannyThread.join();
-                destroyWindow(cannyFilter.getWindowName());
-                cout << "Canny edge detection feed disabled." << endl;
-                isShowCannyActive = false;
-            }
-        } else if (key == 'f') {
-            // Take snapshots of all active feeds
-            if (!frame.empty()) {
-                takeSnapShot(frame, "original_snapshot.jpg");
-            }
-            if (showGreyScale && !greyFrame.empty()) {
-                takeSnapShot(greyFrame, "greyscale_snapshot.jpg");
-            }
-            if (showCanny && !cannyFrame.empty()) {
-                takeSnapShot(cannyFrame, "canny_snapshot.jpg");
-            }
-        } else if (key == 'h') {
-            // Toggle face detection feed on/off
-            showFace = !showFace;
-            if (!showFace && isShowFaceActive) {
-                if (faceThread.joinable()) faceThread.join();
-                destroyWindow(faceFilter.getWindowName());
-                cout << "Face detection feed disabled." << endl;
-                isShowFaceActive = false;
-            }
+            // Apply greyscale filter to the current frame in 3 different threads
+            greyThread1 = std::thread([&]() {
+                greyFrame1 = greyFilter.applyFilter(frame);
+                imshow(greyFilter.getWindowName() + "_1", greyFrame1);
+            });
+            greyThread2 = std::thread([&]() {
+                greyFrame2 = greyFilter.applyFilter(frame);
+                imshow(greyFilter.getWindowName() + "_2", greyFrame2);
+            });
+            greyThread3 = std::thread([&]() {
+                greyFrame3 = greyFilter.applyFilter(frame);
+                imshow(greyFilter.getWindowName() + "_3", greyFrame3);
+            });
+
+            // Wait for all threads to complete
+            greyThread1.join();
+            greyThread2.join();
+            greyThread3.join();
+
+            // Wait indefinitely until a key is pressed
+            waitKey(0);
         }
     }
 
     // Join threads before exiting
-    if (greyThread.joinable()) greyThread.join();
-    if (cannyThread.joinable()) cannyThread.join();
-    if (faceThread.joinable()) faceThread.join();
+    if (greyThread1.joinable()) greyThread1.join();
+    if (greyThread2.joinable()) greyThread2.join();
+    if (greyThread3.joinable()) greyThread3.join();
 }
 
 // Take a Snapshot
