@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find OpenCV first
+# Find OpenCV first
+set(OpenCV_DIR "C:/msys64/mingw64/lib/cmake/opencv4")
 find_package(OpenCV REQUIRED)
 
 # Define directories for sources, headers, and resources
