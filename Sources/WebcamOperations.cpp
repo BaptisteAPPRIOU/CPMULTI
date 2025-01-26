@@ -21,7 +21,7 @@ void WebcamOperations::openWebcam() {
         cerr << "Error: Unable to access the webcam." << endl;
         return;
     }
-    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'c' for Canny edge detection, 'f' to take a snapshot, 'h' for face detection, and 'q' to quit." << endl;
+    cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'c' for Canny edge detection, 'f' to take a snapshot, 'h' for face detection, 'p' for performance metrics, ESC to close performance windows, and 'q' to quit." << endl;
 
     GreyScaleFilter greyFilter;
     CannyBorderDetection cannyFilter;
@@ -29,6 +29,7 @@ void WebcamOperations::openWebcam() {
     bool showGreyScale = false;
     bool showCanny = false;
     bool showFace = false;
+    bool showingPerformance = false;
 
     cv::Mat greyFrame, cannyFrame, faceFrame;
 
@@ -58,10 +59,15 @@ void WebcamOperations::openWebcam() {
             imshow(faceFilter.getWindowName(), faceFrame);
         }
 
-
         // Handle key presses
         char key = waitKey(10);
-        if (key == 'q') {
+        if (key == 27) { // ESC key
+            if (perfMetrics.areWindowsOpen()) {
+                perfMetrics.closeWindows();
+            } else {
+                break;
+            }
+        } else if (key == 'q') {
             break;
         } else if (key == 'g') {
             // Toggle greyscale feed on/off
@@ -74,6 +80,7 @@ void WebcamOperations::openWebcam() {
             showCanny = !showCanny;
             if (!showCanny) {
                 destroyWindow(cannyFilter.getWindowName());
+                destroyWindow("Trackbars");
             }
         } else if (key == 'f') {
             // Take snapshots of all active feeds
@@ -92,10 +99,42 @@ void WebcamOperations::openWebcam() {
             if (!showFace) {
                 destroyWindow(faceFilter.getWindowName());
             }
+        } else if (key == 'p' && !showingPerformance) {
+            showingPerformance = true;
+            showPerformanceMetrics();
+            showingPerformance = false;
         }
     }
 }
 
+void WebcamOperations::showPerformanceMetrics() {
+    if (frame.empty()) {
+        cerr << "No frame available for performance metrics" << endl;
+        return;
+    }
+
+    cout << "Starting performance measurements. Press ESC to close the performance windows when done." << endl;
+    
+    // Create all windows before measurements
+    namedWindow("Speedup vs Threads", WINDOW_NORMAL);
+    namedWindow("CPU Usage Over Time", WINDOW_NORMAL);
+    namedWindow("Execution Time vs Image Size", WINDOW_NORMAL);
+    namedWindow("Filter Performance Comparison", WINDOW_NORMAL);
+
+    // Position windows
+    moveWindow("Speedup vs Threads", 0, 0);
+    moveWindow("CPU Usage Over Time", 800, 0);
+    moveWindow("Execution Time vs Image Size", 0, 600);
+    moveWindow("Filter Performance Comparison", 800, 600);
+
+    // Run measurements
+    perfMetrics.measureSpeedup(frame);
+    perfMetrics.measureCPUUsage(frame);
+    perfMetrics.measureImageSizePerformance(frame);
+    perfMetrics.compareFilterPerformance(frame);
+
+    cout << "Performance measurements complete. Windows will stay open until ESC is pressed." << endl;
+}
 
 // Take a Snapshot
 void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string& filename) {
@@ -110,8 +149,6 @@ void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string
     cout << "Snapshot taken and stored in memory." << endl;
     saveSnapShot();
 }
-
-
 
 // Save the Snapshot
 void WebcamOperations::saveSnapShot() {
@@ -133,7 +170,7 @@ void WebcamOperations::saveSnapShot() {
 
     // Check for existing files and append a counter if needed
     while (filesystem::exists(fullPath)) {
-        fullPath = resourcesPath + "/" + baseName + std::to_string(counter) + extension;
+        fullPath = resourcesPath + "/" + baseName + to_string(counter) + extension;
         counter++;
     }
 
@@ -144,8 +181,6 @@ void WebcamOperations::saveSnapShot() {
         cerr << "Error: Unable to save the snapshot." << endl;
     }
 }
-
-
 
 // Close the Webcam
 void WebcamOperations::closeWebcam() {
