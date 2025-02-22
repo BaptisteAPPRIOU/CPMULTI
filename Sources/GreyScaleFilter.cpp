@@ -17,8 +17,7 @@ Mat GreyScaleFilter::applyFilter(const Mat& inputFrame) {
     Mat grayFrame;
     cvtColor(inputFrame, grayFrame, COLOR_BGR2GRAY); // Convert to greyscale
 
-    imshow(windowName, grayFrame); // Display the greyscale frame
-    return grayFrame; // Return the processed greyscale frame for further use
+    return grayFrame; // Return the processed greyscale frame
 }
 
 string GreyScaleFilter::getWindowName() const {

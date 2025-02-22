@@ -23,9 +23,9 @@ void WebcamOperations::openWebcam() {
     cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'q' to quit." << endl;
 
     GreyScaleFilter greyFilter;
-    // Set the window size to 400x300
     namedWindow(windowName, cv::WINDOW_NORMAL);
     resizeWindow(windowName, 400, 300);
+
     cv::Mat greyFrame1, greyFrame2, greyFrame3;
     
     while (true) {
@@ -35,59 +35,33 @@ void WebcamOperations::openWebcam() {
             break;
         }
 
-        // Display the original feed
-        imshow(windowName, frame);
+        imshow(windowName, frame);  // Display webcam feed
 
-        // Handle key presses
         char key = waitKey(10);
         if (key == 'q') {
             break;
         } else if (key == 'g') {
-            // Take a snapshot of the current frame
             takeSnapShot(frame, "snapshot.jpg");
 
-            // Load the saved snapshot
             cv::Mat savedSnapshot = cv::imread(resourcesPath + "/snapshot.jpg");
             if (savedSnapshot.empty()) {
                 cerr << "Error: Unable to load the saved snapshot." << endl;
                 return;
             }
 
-            // Launch threads to process greyscale filters
-            std::thread greyThread1([&]() {
-                greyFrame1 = greyFilter.applyFilter(savedSnapshot);
-                imshow(greyFilter.getWindowName() + "_1", greyFrame1);
-                cv::waitKey(0); // Wait for a key press to close this window
-                destroyWindow(greyFilter.getWindowName() + "_1");
-            });
+            // Process images in background threads
+            std::thread greyThread1([&]() { greyFrame1 = greyFilter.applyFilter(savedSnapshot); });
 
-            std::thread greyThread2([&]() {
-                greyFrame2 = greyFilter.applyFilter(savedSnapshot);
-                imshow(greyFilter.getWindowName() + "_2", greyFrame2);
-                cv::waitKey(0); // Wait for a key press to close this window
-                destroyWindow(greyFilter.getWindowName() + "_2");
-            });
-
-            std::thread greyThread3([&]() {
-                greyFrame3 = greyFilter.applyFilter(savedSnapshot);
-                imshow(greyFilter.getWindowName() + "_3", greyFrame3);
-                cv::waitKey(0); // Wait for a key press to close this window
-                destroyWindow(greyFilter.getWindowName() + "_3");
-            });
-
-            // Wait for all threads to complete
             greyThread1.join();
-            greyThread2.join();
-            greyThread3.join();
-        } else if (key == 'f') {
-            // Take snapshots of all active feeds
-            if (!frame.empty()) {
-                takeSnapShot(frame, "original_snapshot.jpg");
+
+            // Display results on main thread
+            if (!greyFrame1.empty()) {
+                namedWindow("Greyscale 1", cv::WINDOW_NORMAL);
+                imshow("Greyscale 1", greyFrame1);
             }
         }
     }
 
-    // Close the webcam and destroy all windows
     closeWebcam();
 }
 
