@@ -5,7 +5,7 @@
 #include "Headers/GreyScaleFilter.hpp"
 
 // Constructor
-WebcamOperations::WebcamOperations() {
+WebcamOperations::WebcamOperations() : imageProcessor(4) {
     cout << "WebCamOperations initialized." << endl;
 }
 
@@ -22,46 +22,37 @@ void WebcamOperations::openWebcam() {
     }
     cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'q' to quit." << endl;
 
-    GreyScaleFilter greyFilter;
     namedWindow(windowName, cv::WINDOW_NORMAL);
     resizeWindow(windowName, 400, 300);
 
-    cv::Mat greyFrame1, greyFrame2, greyFrame3;
-    
-    while (true) {
+    while(true){
         cap >> frame;
-        if (frame.empty()) {
-            cerr << "Error: Empty frame captured." << endl;
+        if(frame.empty()){
+            cerr << "Error: No frame available from the webcam." << endl;
             break;
         }
 
-        imshow(windowName, frame);  // Display webcam feed
+        imshow(windowName, frame);
 
         char key = waitKey(10);
-        if (key == 'q') {
+        if(key == 'q'){
             break;
-        } else if (key == 'g') {
+        } else if(key == 'g'){
             takeSnapShot(frame, "snapshot.jpg");
 
-            cv::Mat savedSnapshot = cv::imread(resourcesPath + "/snapshot.jpg");
-            if (savedSnapshot.empty()) {
+            Mat savedSnapshot = imread(resourcesPath + "/snapshot.jpg");
+            if(savedSnapshot.empty()){
                 cerr << "Error: Unable to load the saved snapshot." << endl;
-                return;
+                break;
             }
 
-            // Process images in background threads
-            std::thread greyThread1([&]() { greyFrame1 = greyFilter.applyFilter(savedSnapshot); });
-
-            greyThread1.join();
-
-            // Display results on main thread
-            if (!greyFrame1.empty()) {
-                namedWindow("Greyscale 1", cv::WINDOW_NORMAL);
-                imshow("Greyscale 1", greyFrame1);
+            Mat greyscaleFrame = imageProcessor.applyGreyscaleFilter(savedSnapshot);
+            if(!greyscaleFrame.empty()){
+                namedWindow("Greyscale Feed", WINDOW_NORMAL);
+                imshow("Greyscale Feed", greyscaleFrame);
             }
         }
     }
-
     closeWebcam();
 }
 

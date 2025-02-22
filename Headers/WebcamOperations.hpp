@@ -2,6 +2,7 @@
 #define WEBCAMOPERATIONS_H
 
 #include <opencv2/opencv.hpp>
+#include "Headers/MultiThreadImageProcessor.hpp"
 #include <string>
 using namespace std;
 using namespace cv;
@@ -24,6 +25,8 @@ class WebcamOperations
     string windowName = "Webcam Feed";
     string snapShotName = "snapshot.jpg";
     string resourcesPath = "../resources";
+
+    MultiThreadImageProcessor imageProcessor;
 };
 
 #endif // WEBCAMOPERATIONS_H
