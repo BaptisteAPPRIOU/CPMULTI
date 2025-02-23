@@ -31,6 +31,15 @@ pair<Mat, double> MultiThreadImageProcessor::applyGaussianFilterTimed(const Mat&
   return applyFilterTimed(inputImage, gaussianFilter);
 }
 
+Mat MultiThreadImageProcessor::applyMedianFilter(const Mat& inputImage) {
+  auto [result, _] = applyMedianFilterTimed(inputImage);
+  return result;
+}
+
+pair<Mat, double> MultiThreadImageProcessor::applyMedianFilterTimed(const Mat& inputImage) {
+  return applyFilterTimed(inputImage, medianFilter);
+}
+
 template<typename FilterType>
 pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const Mat& inputImage, FilterType& filter) {
     if(inputImage.empty()) {
