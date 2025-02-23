@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 #include "Headers/MultiThreadImageProcessor.hpp"
+#include "Headers/KeyHandler.hpp"
 #include <string>
 using namespace std;
 using namespace cv;
@@ -27,6 +28,7 @@ class WebcamOperations
     string resourcesPath = "../resources";
 
     MultiThreadImageProcessor imageProcessor;
+    KeyHandler keyHandler;
 };
 
 #endif // WEBCAMOPERATIONS_H

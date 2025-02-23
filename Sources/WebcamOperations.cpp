@@ -5,7 +5,7 @@
 #include "Headers/GreyScaleFilter.hpp"
 
 // Constructor
-WebcamOperations::WebcamOperations() : imageProcessor(4) {
+WebcamOperations::WebcamOperations() : imageProcessor(4) , keyHandler(imageProcessor, resourcesPath) {
     cout << "WebCamOperations initialized." << endl;
 }
 
@@ -22,12 +22,12 @@ void WebcamOperations::openWebcam() {
     }
     cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'q' to quit." << endl;
 
-    namedWindow(windowName, cv::WINDOW_NORMAL);
+    namedWindow(windowName, WINDOW_NORMAL);
     resizeWindow(windowName, 400, 300);
 
-    while(true){
+    while(true) {
         cap >> frame;
-        if(frame.empty()){
+        if(frame.empty()) {
             cerr << "Error: No frame available from the webcam." << endl;
             break;
         }
@@ -35,55 +35,12 @@ void WebcamOperations::openWebcam() {
         imshow(windowName, frame);
 
         char key = waitKey(10);
-        if(key == 'q'){
+        if (!keyHandler.handleKeyPress(key, frame)) {
             break;
-        } else if (key == 't') {
-            takeSnapShot(frame, "snapshot.jpg");
-            Mat savedSnapshot = imread(resourcesPath + "/snapshot.jpg");
-            if (savedSnapshot.empty()) {
-                cerr << "Error: Unable to load the saved snapshot." << endl;
-                return;
-            }
-        
-            // Run multiple iterations to get more accurate timing
-            const int iterations = 1000;
-            
-            // Test different thread counts
-            for (int threads = 1; threads <= 8; threads++) {
-                imageProcessor.setNumThreads(threads);
-                double totalDuration = 0;
-                
-                for (int i = 0; i < iterations; i++) {
-                    auto [_, duration] = imageProcessor.applyGreyscaleFilterTimed(savedSnapshot);
-                    totalDuration += duration;
-                }
-                
-                cout << "Average processing time with " << threads << " threads: " 
-                     << (totalDuration / iterations) << " µs" << endl;
-            }
-        // For the 'g' key handler:
-        } else if(key == 'g'){
-            takeSnapShot(frame, "snapshot.jpg");
-        
-            Mat savedSnapshot = imread(resourcesPath + "/snapshot.jpg");
-            if(savedSnapshot.empty()){
-                cerr << "Error: Unable to load the saved snapshot." << endl;
-                break;
-            }
-        
-            auto [greyscaleFrame, duration] = imageProcessor.applyGreyscaleFilterTimed(savedSnapshot);
-        
-            if(!greyscaleFrame.empty()){
-                namedWindow("Greyscale Feed", WINDOW_NORMAL);
-                imshow("Greyscale Feed", greyscaleFrame);
-                cout << "Greyscale processing time with " << imageProcessor.getNumThreads() 
-                     << " threads: " << duration << " µs" << endl;
-            }
         }
     }
     closeWebcam();
 }
-
 // Take a Snapshot
 void WebcamOperations::takeSnapShot(const cv::Mat& inputFrame, const std::string& filename) {
     if (inputFrame.empty()) {
