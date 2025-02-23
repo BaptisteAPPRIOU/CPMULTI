@@ -37,19 +37,47 @@ void WebcamOperations::openWebcam() {
         char key = waitKey(10);
         if(key == 'q'){
             break;
+        } else if (key == 't') {
+            takeSnapShot(frame, "snapshot.jpg");
+            Mat savedSnapshot = imread(resourcesPath + "/snapshot.jpg");
+            if (savedSnapshot.empty()) {
+                cerr << "Error: Unable to load the saved snapshot." << endl;
+                return;
+            }
+        
+            // Run multiple iterations to get more accurate timing
+            const int iterations = 1000;
+            
+            // Test different thread counts
+            for (int threads = 1; threads <= 8; threads++) {
+                imageProcessor.setNumThreads(threads);
+                double totalDuration = 0;
+                
+                for (int i = 0; i < iterations; i++) {
+                    auto [_, duration] = imageProcessor.applyGreyscaleFilterTimed(savedSnapshot);
+                    totalDuration += duration;
+                }
+                
+                cout << "Average processing time with " << threads << " threads: " 
+                     << (totalDuration / iterations) << " µs" << endl;
+            }
+        // For the 'g' key handler:
         } else if(key == 'g'){
             takeSnapShot(frame, "snapshot.jpg");
-
+        
             Mat savedSnapshot = imread(resourcesPath + "/snapshot.jpg");
             if(savedSnapshot.empty()){
                 cerr << "Error: Unable to load the saved snapshot." << endl;
                 break;
             }
-
-            Mat greyscaleFrame = imageProcessor.applyGreyscaleFilter(savedSnapshot);
+        
+            auto [greyscaleFrame, duration] = imageProcessor.applyGreyscaleFilterTimed(savedSnapshot);
+        
             if(!greyscaleFrame.empty()){
                 namedWindow("Greyscale Feed", WINDOW_NORMAL);
                 imshow("Greyscale Feed", greyscaleFrame);
+                cout << "Greyscale processing time with " << imageProcessor.getNumThreads() 
+                     << " threads: " << duration << " µs" << endl;
             }
         }
     }
