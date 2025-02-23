@@ -19,7 +19,3 @@ Mat GreyScaleFilter::applyFilter(const Mat& inputFrame) {
 
     return grayFrame; // Return the processed greyscale frame
 }
-
-string GreyScaleFilter::getWindowName() const {
-    return windowName;
-}

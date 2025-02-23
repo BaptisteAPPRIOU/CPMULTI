@@ -15,7 +15,6 @@ public:
     void setStrength(float strength); // Update the denoising strength
 
     Mat applyFilter(const Mat& inputFrame); // Apply denoising filter
-    string getWindowName() const; // Return window name
 
 private:
     float hStrength;  // Filter strength parameter

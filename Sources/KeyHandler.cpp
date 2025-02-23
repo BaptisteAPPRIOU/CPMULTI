@@ -17,6 +17,7 @@ void KeyHandler::setupFilterMap() {
     filterMap['i'] = "gaussian";
     filterMap['o'] = "median";
     filterMap['p'] = "denoising";
+    filterMap['c'] = "canny";
 }
 
 // Handle key press dynamically using function map

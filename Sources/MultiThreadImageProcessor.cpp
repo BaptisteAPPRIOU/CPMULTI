@@ -11,6 +11,7 @@ MultiThreadImageProcessor::MultiThreadImageProcessor(int numThreads) : numThread
     filterMap["gaussian"] = [this](const Mat& img) { return applyFilterTimed("gaussian", img).first; };
     filterMap["median"] = [this](const Mat& img) { return applyFilterTimed("median", img).first; };
     filterMap["denoising"] = [this](const Mat& img) { return applyFilterTimed("denoising", img).first; };
+    filterMap["canny"] = [this](const Mat& img) { return applyFilterTimed("canny", img).first; };
 }
 
 MultiThreadImageProcessor::~MultiThreadImageProcessor() {}
@@ -41,7 +42,20 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
     } else if (filterName == "denoising") {
         DenoisingFilter denoisingFilter;
         return processFilter(inputImage, denoisingFilter);
-    } else {
+    } else if (filterName == "canny") {
+        CannyFilter cannyFilter;
+        if (numThreads == 1) {
+            auto startTime = chrono::high_resolution_clock::now();
+            Mat result = cannyFilter.applyFilter(inputImage);
+            auto stopTime = chrono::high_resolution_clock::now();
+            double duration = chrono::duration_cast<chrono::microseconds>(stopTime - startTime).count();
+            return {result, duration};
+        }
+        return processFilter(inputImage, cannyFilter);
+    }
+    
+    
+    else {
         cout << "Error: Unknown filter name '" << filterName << "'" << endl;
         return {Mat(), 0};
     }

@@ -8,6 +8,7 @@
 #include "Headers/GaussianFilter.hpp"
 #include "Headers/MedianFilter.hpp"
 #include "Headers/DenoisingFilter.hpp"
+#include "Headers/CannyFilter.hpp"
 
 using namespace std;
 using namespace cv;

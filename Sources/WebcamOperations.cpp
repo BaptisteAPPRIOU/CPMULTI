@@ -5,7 +5,7 @@
 #include "Headers/GreyScaleFilter.hpp"
 
 // Constructor
-WebcamOperations::WebcamOperations() : imageProcessor(4) , keyHandler(imageProcessor, resourcesPath) {
+WebcamOperations::WebcamOperations() : imageProcessor(1) , keyHandler(imageProcessor, resourcesPath) {
     cout << "WebCamOperations initialized." << endl;
 }
 

@@ -16,7 +16,6 @@ public:
     int getKernelSize() const { return kernelSize; }
 
     Mat applyFilter(const Mat& inputFrame); // Apply median filter
-    string getWindowName() const; // Return window name
 
 private:
     int kernelSize;

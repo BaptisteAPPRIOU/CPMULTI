@@ -12,8 +12,7 @@ class GreyScaleFilter {
     GreyScaleFilter(); 
     ~GreyScaleFilter(); 
 
-    Mat applyFilter(const cv::Mat& inputFrame);
-    string getWindowName() const;
+    Mat applyFilter(const Mat& inputFrame);
 
   private:
     string windowName = "Greyscale Feed";

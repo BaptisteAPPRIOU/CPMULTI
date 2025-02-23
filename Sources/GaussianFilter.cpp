@@ -41,7 +41,3 @@ Mat GaussianFilter::applyFilter(const Mat& inputFrame) {
 
     return blurredFrame;
 }
-
-string GaussianFilter::getWindowName() const {
-    return windowName;
-}

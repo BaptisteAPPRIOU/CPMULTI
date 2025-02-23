@@ -4,9 +4,12 @@
 #include <opencv2/opencv.hpp>
 #include <string>
 
+using namespace cv;
+using namespace std;
+
 class GaussianFilter {
   private:
-      const std::string windowName = "Gaussian Blur";
+      const string windowName = "Gaussian Blur";
       int kernelSize;    // Must be odd
       double sigmaX;     // Gaussian kernel standard deviation
       double sigmaY;     // Optional second sigma value
@@ -15,8 +18,7 @@ class GaussianFilter {
       GaussianFilter(int kernelSize = 5, double sigma = 1.5);
       ~GaussianFilter();
   
-      cv::Mat applyFilter(const cv::Mat& inputFrame);
-      std::string getWindowName() const;
+      Mat applyFilter(const Mat& inputFrame);
       
       // Setters for blur parameters
       void setKernelSize(int size);  // Will ensure size is odd

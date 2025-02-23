@@ -28,7 +28,3 @@ Mat DenoisingFilter::applyFilter(const Mat& inputFrame) {
 
     return denoisedFrame; // Return the processed image
 }
-
-string DenoisingFilter::getWindowName() const {
-    return windowName;
-}

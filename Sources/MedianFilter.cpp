@@ -13,7 +13,7 @@ MedianFilter::~MedianFilter() {
 }
 
 void MedianFilter::setKernelSize(int size) {
-    // ✅ Ensure kernel size is **odd** and at least **3**
+    // Ensure kernel size is **odd** and at least **3**
     if (size % 2 == 0) size++; // If even, make it odd
     kernelSize = max(3, size);
 }
@@ -28,8 +28,4 @@ Mat MedianFilter::applyFilter(const Mat& inputFrame) {
     medianBlur(inputFrame, filteredFrame, kernelSize); // Apply Median Filter
 
     return filteredFrame; // Return the processed image
-}
-
-string MedianFilter::getWindowName() const {
-    return windowName;
 }
