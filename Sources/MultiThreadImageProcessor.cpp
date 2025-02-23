@@ -1,71 +1,60 @@
 #include "Headers/MultiThreadImageProcessor.hpp"
+#include <iostream>
+#include <thread>
 
+using namespace cv;
+using namespace std;
 
-MultiThreadImageProcessor::MultiThreadImageProcessor(int numThreads) {
-    this->numThreads = numThreads;
+MultiThreadImageProcessor::MultiThreadImageProcessor(int numThreads) : numThreads(numThreads) {
+    // Initialize filter map with corresponding filter functions
+    filterMap["greyscale"] = [this](const Mat& img) { return applyFilterTimed("greyscale", img).first; };
+    filterMap["gaussian"] = [this](const Mat& img) { return applyFilterTimed("gaussian", img).first; };
+    filterMap["median"] = [this](const Mat& img) { return applyFilterTimed("median", img).first; };
+    filterMap["denoising"] = [this](const Mat& img) { return applyFilterTimed("denoising", img).first; };
 }
 
-MultiThreadImageProcessor::~MultiThreadImageProcessor() {
+MultiThreadImageProcessor::~MultiThreadImageProcessor() {}
+
+// Apply filter dynamically based on filter name
+Mat MultiThreadImageProcessor::applyFilter(const string& filterName, const Mat& inputImage) {
+    auto [result, _] = applyFilterTimed(filterName, inputImage);
+    return result;
 }
 
-void MultiThreadImageProcessor::processSegment(const Mat& input, Mat& output, int startRow, int endRow) {
-    Mat segment = input(Range(startRow , endRow), Range::all());
-    output = greyScaleFilter.applyFilter(segment);
-}
-
-Mat MultiThreadImageProcessor::applyGreyscaleFilter(const cv::Mat& inputImage) {
-  auto [result, _] = applyGreyscaleFilterTimed(inputImage);
-  return result;
-}
-
-pair<Mat, double> MultiThreadImageProcessor::applyGreyscaleFilterTimed(const Mat& inputImage) {
-  return applyFilterTimed(inputImage, greyScaleFilter);
-}
-
-Mat MultiThreadImageProcessor::applyGaussianFilter(const Mat& inputImage) {
-  auto [result, _] = applyGaussianFilterTimed(inputImage);
-  return result;
-}
-
-pair<Mat, double> MultiThreadImageProcessor::applyGaussianFilterTimed(const Mat& inputImage) {
-  return applyFilterTimed(inputImage, gaussianFilter);
-}
-
-Mat MultiThreadImageProcessor::applyMedianFilter(const Mat& inputImage) {
-  auto [result, _] = applyMedianFilterTimed(inputImage);
-  return result;
-}
-
-pair<Mat, double> MultiThreadImageProcessor::applyMedianFilterTimed(const Mat& inputImage) {
-  return applyFilterTimed(inputImage, medianFilter);
-}
-
-Mat MultiThreadImageProcessor::applyDenoisingFilter(const Mat& inputImage) {
-  auto [result, _] = applyDenoisingFilterTimed(inputImage);
-  return result;
-}
-
-pair<Mat, double> MultiThreadImageProcessor::applyDenoisingFilterTimed(const Mat& inputImage) {
-  return applyFilterTimed(inputImage, denoisingFilter);
-}
-
-template<typename FilterType>
-pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const Mat& inputImage, FilterType& filter) {
-    if(inputImage.empty()) {
-        cout << "Empty image provided to the MultiThreadImageProcessor" << endl;
+// Apply filter with timing measurements
+pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filterName, const Mat& inputImage) {
+    if (inputImage.empty()) {
+        cout << "Error: Empty image provided for processing" << endl;
         return {Mat(), 0};
     }
 
-    // Create output image
-    Mat finalImage;
-
-    if (typeid(FilterType) == typeid(GreyScaleFilter)) {
-        finalImage = Mat(inputImage.rows, inputImage.cols, CV_8UC1);
+    // Dynamically apply the correct filter
+    if (filterName == "greyscale") {
+        GreyScaleFilter greyScaleFilter;
+        return processFilter(inputImage, greyScaleFilter);
+    } else if (filterName == "gaussian") {
+        GaussianFilter gaussianFilter;
+        return processFilter(inputImage, gaussianFilter);
+    } else if (filterName == "median") {
+        MedianFilter medianFilter;
+        return processFilter(inputImage, medianFilter);
+    } else if (filterName == "denoising") {
+        DenoisingFilter denoisingFilter;
+        return processFilter(inputImage, denoisingFilter);
     } else {
-        finalImage = Mat(inputImage.rows, inputImage.cols, inputImage.type());
+        cout << "Error: Unknown filter name '" << filterName << "'" << endl;
+        return {Mat(), 0};
     }
-    
-    auto startTime = high_resolution_clock::now();
+}
+
+// Generalized function to process any filter with threading
+template<typename FilterType>
+pair<Mat, double> MultiThreadImageProcessor::processFilter(const Mat& inputImage, FilterType& filter) {
+    Mat finalImage = (typeid(FilterType) == typeid(GreyScaleFilter))
+        ? Mat(inputImage.rows, inputImage.cols, CV_8UC1)
+        : Mat(inputImage.rows, inputImage.cols, inputImage.type());
+
+    auto startTime = chrono::high_resolution_clock::now();
 
     if (numThreads <= 1) {
         // Single-threaded case
@@ -74,11 +63,11 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const Mat& inputIm
         // Multi-threaded case
         vector<thread> threads;
         int segmentHeight = inputImage.rows / numThreads;
-        
-        for(int i = 0; i < numThreads; i++) {
+
+        for (int i = 0; i < numThreads; i++) {
             int startRow = i * segmentHeight;
             int endRow = (i == numThreads - 1) ? inputImage.rows : (i + 1) * segmentHeight;
-            
+
             threads.emplace_back([&, startRow, endRow]() {
                 Mat inputSegment = inputImage(Range(startRow, endRow), Range::all());
                 Mat outputSegment = finalImage(Range(startRow, endRow), Range::all());
@@ -86,21 +75,22 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const Mat& inputIm
             });
         }
 
-        for(auto& thread : threads) {
+        for (auto& thread : threads) {
             thread.join();
         }
     }
 
-    auto stopTime = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stopTime - startTime);
+    auto stopTime = chrono::high_resolution_clock::now();
+    double duration = chrono::duration_cast<chrono::microseconds>(stopTime - startTime).count();
 
-    return {finalImage, duration.count()};
+    return {finalImage, duration};
 }
 
+// Set and get number of threads
 void MultiThreadImageProcessor::setNumThreads(int numThreads) {
-  this->numThreads = numThreads;
+    this->numThreads = numThreads;
 }
 
 int MultiThreadImageProcessor::getNumThreads() const {
-  return numThreads;
+    return numThreads;
 }
