@@ -11,6 +11,9 @@ void KeyHandler::handleTestCase(const Mat& frame) {
     
     cout << "\nTesting Gaussian Filter:" << endl;
     performThreadingTest(savedSnapshot, "Gaussian", &KeyHandler::processWithGaussian);
+    
+    cout << "\nTesting Median Filter:" << endl;
+    performThreadingTest(savedSnapshot, "Median", &KeyHandler::processWithMedian);
 }
 
 void KeyHandler::performThreadingTest(const Mat& snapshot, 
@@ -52,8 +55,21 @@ bool KeyHandler::processWithGaussian(const Mat& frame) {
     return false;
 }
 
+bool KeyHandler::processWithMedian(const Mat& frame) {
+    auto [resultFrame, duration] = imageProcessor.applyMedianFilterTimed(frame);
+    if (!resultFrame.empty()) {
+        namedWindow("Median Filter", WINDOW_NORMAL);
+        imshow("Median Filter", resultFrame);
+        cout << "Median filter processing time with " << imageProcessor.getNumThreads() 
+             << " threads: " << duration << " µs" << endl;
+        return true;
+    }
+    return false;
+}
+
 bool KeyHandler::handleKeyPress(char key, Mat& frame) {
     GaussianFilter& gaussianFilter = imageProcessor.getGaussianFilter();
+    MedianFilter& medianFilter = imageProcessor.getMedianFilter();
     
     switch(key) {
         case 'q':
@@ -64,22 +80,37 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
         case 'g':
             handleGreyscaleCase(frame);
             break;
-        case 'b':  // 'b' for blur
+        case 'b':
             handleGaussianCase(frame);
             break;
-        case '+':  // Increase blur
-            gaussianFilter.setKernelSize(gaussianFilter.getKernelSize() + 2);
-            gaussianFilter.setSigma(gaussianFilter.getSigmaX() + 0.5);
-            cout << "Blur increased - Kernel: " << gaussianFilter.getKernelSize() 
-                 << ", Sigma: " << gaussianFilter.getSigmaX() << endl;
-            handleGaussianCase(frame);
+        case 'm':  // 'm' for median
+            handleMedianCase(frame);
             break;
-        case '-':  // Decrease blur
-            gaussianFilter.setKernelSize(gaussianFilter.getKernelSize() - 2);
-            gaussianFilter.setSigma(gaussianFilter.getSigmaX() - 0.5);
-            cout << "Blur decreased - Kernel: " << gaussianFilter.getKernelSize() 
-                 << ", Sigma: " << gaussianFilter.getSigmaX() << endl;
-            handleGaussianCase(frame);
+        case '+':
+            if (key == 'b') {
+                gaussianFilter.setKernelSize(gaussianFilter.getKernelSize() + 2);
+                gaussianFilter.setSigma(gaussianFilter.getSigmaX() + 0.5);
+                cout << "Gaussian blur increased - Kernel: " << gaussianFilter.getKernelSize() 
+                     << ", Sigma: " << gaussianFilter.getSigmaX() << endl;
+                handleGaussianCase(frame);
+            } else {
+                medianFilter.setKernelSize(medianFilter.getKernelSize() + 2);
+                cout << "Median kernel size increased to: " << medianFilter.getKernelSize() << endl;
+                handleMedianCase(frame);
+            }
+            break;
+        case '-':
+            if (key == 'b') {
+                gaussianFilter.setKernelSize(gaussianFilter.getKernelSize() - 2);
+                gaussianFilter.setSigma(gaussianFilter.getSigmaX() - 0.5);
+                cout << "Gaussian blur decreased - Kernel: " << gaussianFilter.getKernelSize() 
+                     << ", Sigma: " << gaussianFilter.getSigmaX() << endl;
+                handleGaussianCase(frame);
+            } else {
+                medianFilter.setKernelSize(medianFilter.getKernelSize() - 2);
+                cout << "Median kernel size decreased to: " << medianFilter.getKernelSize() << endl;
+                handleMedianCase(frame);
+            }
             break;
     }
     return true;
@@ -99,6 +130,14 @@ void KeyHandler::handleGreyscaleCase(const Mat& frame) {
     if(savedSnapshot.empty()) return;
 
     processWithGreyscale(savedSnapshot);
+}
+
+void KeyHandler::handleMedianCase(const Mat& frame) {
+    imwrite(resourcesPath + "/snapshot.jpg", frame);
+    Mat savedSnapshot = loadSnapshot("snapshot.jpg");
+    if(savedSnapshot.empty()) return;
+
+    processWithMedian(savedSnapshot);
 }
 
 Mat KeyHandler::loadSnapshot(const string& filename) {

@@ -10,12 +10,13 @@ using namespace cv;
 class KeyHandler {
 private:
     MultiThreadImageProcessor& imageProcessor;
-    const std::string& resourcesPath;
+    const string& resourcesPath;
 
-    cv::Mat loadSnapshot(const std::string& filename);
-    void performThreadingTest(const cv::Mat& snapshot, const std::string& filterName,bool (KeyHandler::*processFunction)(const cv::Mat&));
-    bool processWithGreyscale(const cv::Mat& frame);
-    bool processWithGaussian(const cv::Mat& frame);
+    Mat loadSnapshot(const string& filename);
+    void performThreadingTest(const Mat& snapshot, const string& filterName,bool (KeyHandler::*processFunction)(const Mat&));
+    bool processWithGreyscale(const Mat& frame);
+    bool processWithGaussian(const Mat& frame);
+    bool processWithMedian(const Mat& frame);
 
 public:
     KeyHandler(MultiThreadImageProcessor& processor, const string& resPath) 
@@ -26,6 +27,7 @@ public:
     void handleTestCase(const Mat& frame);
     void handleGreyscaleCase(const Mat& frame);
     void handleGaussianCase(const Mat& frame);
+    void handleMedianCase(const Mat& frame);
 };
 
 #endif // KEY_HANDLER_HPP
