@@ -40,6 +40,15 @@ pair<Mat, double> MultiThreadImageProcessor::applyMedianFilterTimed(const Mat& i
   return applyFilterTimed(inputImage, medianFilter);
 }
 
+Mat MultiThreadImageProcessor::applyDenoisingFilter(const Mat& inputImage) {
+  auto [result, _] = applyDenoisingFilterTimed(inputImage);
+  return result;
+}
+
+pair<Mat, double> MultiThreadImageProcessor::applyDenoisingFilterTimed(const Mat& inputImage) {
+  return applyFilterTimed(inputImage, denoisingFilter);
+}
+
 template<typename FilterType>
 pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const Mat& inputImage, FilterType& filter) {
     if(inputImage.empty()) {
@@ -49,6 +58,7 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const Mat& inputIm
 
     // Create output image
     Mat finalImage;
+
     if (typeid(FilterType) == typeid(GreyScaleFilter)) {
         finalImage = Mat(inputImage.rows, inputImage.cols, CV_8UC1);
     } else {

@@ -17,6 +17,7 @@ private:
     bool processWithGreyscale(const Mat& frame);
     bool processWithGaussian(const Mat& frame);
     bool processWithMedian(const Mat& frame);
+    bool processWithDenoising(const Mat& frame);
 
 public:
     KeyHandler(MultiThreadImageProcessor& processor, const string& resPath) 
@@ -28,6 +29,7 @@ public:
     void handleGreyscaleCase(const Mat& frame);
     void handleGaussianCase(const Mat& frame);
     void handleMedianCase(const Mat& frame);
+    void handleDenoisingCase(const Mat& frame);
 };
 
 #endif // KEY_HANDLER_HPP

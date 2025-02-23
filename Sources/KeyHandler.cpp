@@ -14,6 +14,9 @@ void KeyHandler::handleTestCase(const Mat& frame) {
     
     cout << "\nTesting Median Filter:" << endl;
     performThreadingTest(savedSnapshot, "Median", &KeyHandler::processWithMedian);
+
+    cout << "\nTesting Denoising Filter:" << endl;
+    performThreadingTest(savedSnapshot, "Denoising", &KeyHandler::processWithDenoising);
 }
 
 void KeyHandler::performThreadingTest(const Mat& snapshot, 
@@ -67,6 +70,18 @@ bool KeyHandler::processWithMedian(const Mat& frame) {
     return false;
 }
 
+bool KeyHandler::processWithDenoising(const Mat& frame) {
+    auto [resultFrame, duration] = imageProcessor.applyDenoisingFilterTimed(frame);
+    if (!resultFrame.empty()) {
+        namedWindow("Denoising Filter", WINDOW_NORMAL);
+        imshow("Denoising Filter", resultFrame);
+        cout << "Denoising filter processing time with " << imageProcessor.getNumThreads() 
+             << " threads: " << duration << " µs" << endl;
+        return true;
+    }
+    return false;
+}
+
 bool KeyHandler::handleKeyPress(char key, Mat& frame) {
     GaussianFilter& gaussianFilter = imageProcessor.getGaussianFilter();
     MedianFilter& medianFilter = imageProcessor.getMedianFilter();
@@ -80,11 +95,14 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
         case 'g':
             handleGreyscaleCase(frame);
             break;
-        case 'b':
+        case 'i':
             handleGaussianCase(frame);
             break;
-        case 'm':  // 'm' for median
+        case 'o':  // 'm' for median
             handleMedianCase(frame);
+            break;
+        case 'p':
+            handleDenoisingCase(frame);
             break;
         case '+':
             if (key == 'b') {
@@ -138,6 +156,14 @@ void KeyHandler::handleMedianCase(const Mat& frame) {
     if(savedSnapshot.empty()) return;
 
     processWithMedian(savedSnapshot);
+}
+
+void KeyHandler::handleDenoisingCase(const Mat& frame) {
+    imwrite(resourcesPath + "/snapshot.jpg", frame);
+    Mat savedSnapshot = loadSnapshot("snapshot.jpg");
+    if(savedSnapshot.empty()) return;
+
+    processWithDenoising(savedSnapshot);
 }
 
 Mat KeyHandler::loadSnapshot(const string& filename) {
