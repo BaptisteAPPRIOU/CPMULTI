@@ -46,7 +46,7 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
 
             // Divide by 1000 for display in thousands (k)
             stringstream ss;
-            ss << fixed << setprecision(0) << (times[i] / 1000);  // Divide by 1000
+            ss << fixed << setprecision(0) << times[i];  // Divide by 1000
             
             putText(plotImage, ss.str(), 
                    Point(x - 15, y - 10),  // Position above the point
