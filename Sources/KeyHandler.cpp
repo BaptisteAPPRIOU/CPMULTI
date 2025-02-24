@@ -18,6 +18,10 @@ void KeyHandler::setupFilterMap() {
     filterMap['o'] = "median";
     filterMap['p'] = "denoising";
     filterMap['c'] = "canny";
+    filterMap['k'] = "sobel";
+    filterMap['l'] = "fourier";
+    filterMap['m'] = "resize";
+    filterMap['n'] = "rotate";
 }
 
 // Handle key press dynamically using function map
@@ -79,7 +83,7 @@ void KeyHandler::handleTestCase(const Mat& frame) {
     Mat savedSnapshot = loadSnapshot("snapshot.jpg");
     if (savedSnapshot.empty()) return;
 
-    vector<string> filters = {"greyscale", "gaussian", "median", "denoising"};
+    vector<string> filters = {"greyscale", "gaussian", "median", "denoising", "canny", "sobel", "fourier", "resize", "rotate"};
 
     for (const auto& filterName : filters) {
         cout << "\nTesting " << filterName << " Filter:" << endl;

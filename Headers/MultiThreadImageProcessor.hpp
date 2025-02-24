@@ -9,6 +9,9 @@
 #include "Headers/MedianFilter.hpp"
 #include "Headers/DenoisingFilter.hpp"
 #include "Headers/CannyFilter.hpp"
+#include "Headers/SobelFilter.hpp"
+#include "Headers/FourierFilter.hpp"
+#include "Headers/ResizeRotateFilter.hpp"
 
 using namespace std;
 using namespace cv;

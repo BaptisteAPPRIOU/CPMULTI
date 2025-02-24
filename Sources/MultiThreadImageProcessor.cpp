@@ -12,6 +12,10 @@ MultiThreadImageProcessor::MultiThreadImageProcessor(int numThreads) : numThread
     filterMap["median"] = [this](const Mat& img) { return applyFilterTimed("median", img).first; };
     filterMap["denoising"] = [this](const Mat& img) { return applyFilterTimed("denoising", img).first; };
     filterMap["canny"] = [this](const Mat& img) { return applyFilterTimed("canny", img).first; };
+    filterMap["sobel"] = [this](const Mat& img) { return applyFilterTimed("sobel", img).first; };
+    filterMap["fourier"] = [this](const Mat& img) { return applyFilterTimed("fourier", img).first; };
+    filterMap["resize"] = [this](const Mat& img) { return applyFilterTimed("resize", img).first; };
+    filterMap["rotate"] = [this](const Mat& img) { return applyFilterTimed("rotate", img).first; };
 }
 
 MultiThreadImageProcessor::~MultiThreadImageProcessor() {}
@@ -52,6 +56,18 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
             return {result, duration};
         }
         return processFilter(inputImage, cannyFilter);
+    } else if (filterName == "sobel") {
+        SobelFilter sobelFilter;
+        return processFilter(inputImage, sobelFilter);
+    } else if (filterName == "fourier") {
+        FourierFilter fourierFilter;
+        return processFilter(inputImage, fourierFilter);
+    } else if (filterName == "resize") {
+        ResizeRotateFilter resizeFilter;
+        return processFilter(inputImage, resizeFilter);
+    } else if (filterName == "rotate") {
+        ResizeRotateFilter rotateFilter(1.0, 45.0);
+        return processFilter(inputImage, rotateFilter);
     }
     
     
