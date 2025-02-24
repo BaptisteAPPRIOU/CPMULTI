@@ -22,11 +22,10 @@ void WebcamOperations::openWebcam() {
     }
     cout << "" << endl;
     cout << "Webcam opened successfully. Press 'g' for greyscale feed, 'q' to quit." << endl;
-    cout << "Press 't' to test all filters, 'x' to test all filters with cut lines." << endl;
+    cout << "Press 't' to test all filters, 'x' to test some filters with cut lines." << endl;
     cout << "Press 'c' for canny edge detection, 'k' for sobel edge detection." << endl;
     cout << "Press 'l' for fourier transform, 'm' for resize, 'n' for rotate." << endl;
-    cout << "Press 'o' for median filter, 'p' for denoising filter." << endl;
-    cout << "Press 'i' for gaussian blur." << endl;
+    cout << "Press 'i' for gaussian blur, press 'o' for median filter, 'p' for denoising filter." << endl;
     cout << "" << endl;
 
     namedWindow(windowName, WINDOW_NORMAL);
