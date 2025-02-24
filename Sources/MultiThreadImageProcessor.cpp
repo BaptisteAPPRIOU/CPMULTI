@@ -44,13 +44,6 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
         return processFilter(inputImage, denoisingFilter);
     } else if (filterName == "canny") {
         CannyFilter cannyFilter;
-        if (numThreads == 1) {
-            auto startTime = chrono::high_resolution_clock::now();
-            Mat result = cannyFilter.applyFilter(inputImage);
-            auto stopTime = chrono::high_resolution_clock::now();
-            double duration = chrono::duration_cast<chrono::microseconds>(stopTime - startTime).count();
-            return {result, duration};
-        }
         return processFilter(inputImage, cannyFilter);
     }
     
@@ -64,28 +57,36 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
 // Generalized function to process any filter with threading
 template<typename FilterType>
 pair<Mat, double> MultiThreadImageProcessor::processFilter(const Mat& inputImage, FilterType& filter) {
-    Mat finalImage = (typeid(FilterType) == typeid(GreyScaleFilter))
-        ? Mat(inputImage.rows, inputImage.cols, CV_8UC1)
-        : Mat(inputImage.rows, inputImage.cols, inputImage.type());
+    Mat finalImage = Mat(inputImage.rows, inputImage.cols, inputImage.type()); // Match input type
 
     auto startTime = chrono::high_resolution_clock::now();
 
     if (numThreads <= 1) {
-        // Single-threaded case
         finalImage = filter.applyFilter(inputImage);
     } else {
-        // Multi-threaded case
         vector<thread> threads;
         int segmentHeight = inputImage.rows / numThreads;
+        int overlap = 10;
 
         for (int i = 0; i < numThreads; i++) {
-            int startRow = i * segmentHeight;
-            int endRow = (i == numThreads - 1) ? inputImage.rows : (i + 1) * segmentHeight;
+            int startRow = max(0, i * segmentHeight - overlap);
+            int endRow = min(inputImage.rows, (i + 1) * segmentHeight + overlap);
 
-            threads.emplace_back([&, startRow, endRow]() {
+            threads.emplace_back([&, startRow, endRow, i]() {
                 Mat inputSegment = inputImage(Range(startRow, endRow), Range::all());
-                Mat outputSegment = finalImage(Range(startRow, endRow), Range::all());
-                filter.applyFilter(inputSegment).copyTo(outputSegment);
+                Mat processedSegment = filter.applyFilter(inputSegment);
+
+                // Convert grayscale to color if necessary
+                if (processedSegment.channels() != finalImage.channels()) {
+                    cvtColor(processedSegment, processedSegment, COLOR_GRAY2BGR);
+                }
+
+                // Crop and copy to final image
+                int cropStart = (i == 0) ? 0 : overlap;
+                int cropEnd = (i == numThreads - 1) ? processedSegment.rows : processedSegment.rows - overlap;
+                Mat croppedSegment = processedSegment(Range(cropStart, cropEnd), Range::all());
+
+                croppedSegment.copyTo(finalImage(Range(i * segmentHeight, i * segmentHeight + croppedSegment.rows), Range::all()));
             });
         }
 
