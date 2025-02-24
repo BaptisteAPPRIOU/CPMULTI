@@ -79,7 +79,7 @@ void KeyHandler::handleTestCase(const Mat& frame) {
     Mat savedSnapshot = loadSnapshot("snapshot.jpg");
     if (savedSnapshot.empty()) return;
 
-    vector<string> filters = {"greyscale", "gaussian", "median", "denoising"};
+    vector<string> filters = {"greyscale", "gaussian", "median", "denoising", "canny"};
 
     for (const auto& filterName : filters) {
         cout << "\nTesting " << filterName << " Filter:" << endl;
@@ -89,11 +89,11 @@ void KeyHandler::handleTestCase(const Mat& frame) {
 
 // Test different thread counts for a filter
 void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterName) {
-    // ✅ Run the test with 1 thread first
+    // Run the test with 1 thread first
     imageProcessor.setNumThreads(1);
     processFilter(snapshot, filterName);
 
-    // ✅ Run multiple thread tests
+    // Run multiple thread tests
     const int iterations = 1000;
     for (int threads = 2; threads <= 10; threads++) {
         imageProcessor.setNumThreads(threads);
