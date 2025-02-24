@@ -33,8 +33,8 @@ void KeyHandler::setupVisualization(const string& filterType) {
     
     if (filterType != "all") {
         // Single filter configuration
-        config.width = 1200;
-        config.height = 800;
+        config.width = 1800;
+        config.height = 1200;
         config.backgroundColor = Scalar(255, 255, 255);
         config.title = filterType + " Filter Performance Analysis";
         config.lineThickness = 3;
@@ -109,7 +109,7 @@ bool KeyHandler::processFilter(const Mat& frame, const string& filterName) {
         namedWindow(filterName + " Feed", WINDOW_NORMAL);
         imshow(filterName + " Feed", resultFrame);
         cout << filterName << " processing time with " << imageProcessor.getNumThreads() 
-             << " threads: " << duration << " microseconds" << endl;
+             << " threads: " << duration << " us" << endl;
         return true;
     }
     return false;
@@ -161,7 +161,7 @@ void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterN
         timings.push_back(avgDuration);
         
         cout << filterName << " processing time with " << threads 
-             << " threads: " << avgDuration << " microseconds" << endl;
+             << " threads: " << avgDuration << " us" << endl;
     }
 
     showPerformanceStats(filterName, timings);
@@ -179,10 +179,10 @@ void KeyHandler::showPerformanceStats(const string& filterName, const vector<dou
     int optimal_threads = distance(times.begin(), minmax.first) + 1;
 
     cout << "\nPerformance Statistics for " << filterName << ":\n"
-         << "  Average time: " << fixed << setprecision(2) << mean << " microseconds\n"
-         << "  Best time: " << min_time << " microseconds (with " << optimal_threads << " threads)\n"
-         << "  Worst time: " << max_time << " microseconds\n"
-         << "  Performance range: " << (max_time - min_time) << " microseconds\n\n";
+         << "  Average time: " << fixed << setprecision(2) << mean << " us\n"
+         << "  Best time: " << min_time << " us (with " << optimal_threads << " threads)\n"
+         << "  Worst time: " << max_time << " us\n"
+         << "  Performance range: " << (max_time - min_time) << " us\n\n";
 }
 
 void KeyHandler::generatePerformanceGraph() {
@@ -218,4 +218,7 @@ Scalar KeyHandler::getColorForFilter(const string& filterName) {
     if (filterName == "denoising") return Scalar(0, 255, 0);    // Green
     if (filterName == "canny")     return Scalar(255, 128, 0);  // Orange
     return Scalar(0, 0, 0);  // Black (default)
+}
+int PerformanceVisualization::getYCoordinate(double value, double maxValue) {
+    return plotConfig.height - 50 - (int)((value / maxValue) * (plotConfig.height - 100));
 }
