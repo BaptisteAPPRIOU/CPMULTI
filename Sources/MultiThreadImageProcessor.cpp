@@ -55,11 +55,14 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
     } else if (filterName == "fourier") {
         FourierFilter fourierFilter;
         return processFilter(inputImage, fourierFilter);
+        numThreads = 1;
     } else if (filterName == "resize") {
         ResizeRotateFilter resizeFilter(0.5, 0.0);
+        numThreads = 1;
         return processFilter(inputImage, resizeFilter);
     } else if (filterName == "rotate") {
-        ResizeRotateFilter rotateFilter(1.0, 45.0);
+        ResizeRotateFilter rotateFilter(1.0, 180.0);
+        numThreads = 1;
         return processFilter(inputImage, rotateFilter);
     }
     
