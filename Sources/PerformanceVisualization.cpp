@@ -5,13 +5,13 @@
 void PerformanceVisualization::plotPerformance(const unordered_map<string, vector<double>>& performanceData) {
 
     int originalWidth = plotConfig.width;
-    int legendWidth = 250;  // width of the legend
-    plotConfig.width += legendWidth;  // add space for the legend
+    int legendWidth = 250;  // Width reserved for the legend
+    plotConfig.width += legendWidth;  // Extra space for the legend
     
-    // Create the plot image
+    // Create the background with configuration values
     plotImage = Mat(plotConfig.height, plotConfig.width, CV_8UC3, plotConfig.backgroundColor);
 
-    // Find the maximum and minimum values of time across all filters
+    // Find max and min values for better scaling
     double maxTime = 0;
     double minTime = std::numeric_limits<double>::max();
     for (const auto& [filter, times] : performanceData) {
@@ -19,17 +19,17 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
         minTime = min(minTime, *min_element(times.begin(), times.end()));
     }
 
-    maxTime *= 1.1;  // Add 10% of padding
+    maxTime *= 1.1;  // Add 10% padding
 
-    // Draw grid if enabled
+    // Draw the grid first (if enabled)
     if (plotConfig.showGrid) {
         drawGrid(originalWidth);
     }
 
-    // Draw the axes and labels
+    // Draw axes with labels
     drawAxes(maxTime, originalWidth);
 
-    // Draw the performance data
+    // Plot the data
     int colorIndex = 0;
     for (const auto& [filter, times] : performanceData) {
         vector<Point> points;
@@ -38,17 +38,18 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
             int y = getYCoordinate(times[i], maxTime);
             points.push_back(Point(x, y));
             
-            // Draw points
+            // Draw the points
             circle(plotImage, Point(x, y), 
                    plotConfig.pointSize, 
                    plotConfig.colors[colorIndex % plotConfig.colors.size()], 
                    -1);
 
-            // Add time labels next to the points for better visibility
+            // Divide by 1000 for display in thousands (k)
             stringstream ss;
-            ss << fixed << setprecision(0) << times[i] / 1000; // Divide by 1000 to get milliseconds
+            ss << fixed << setprecision(0) << (times[i] / 1000);  // Divide by 1000
+            
             putText(plotImage, ss.str(), 
-                   Point(x - 15, y - 10),
+                   Point(x - 15, y - 10),  // Position above the point
                    FONT_HERSHEY_SIMPLEX, 
                    plotConfig.fontSize * 0.6,
                    plotConfig.textColor, 
@@ -64,7 +65,8 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
 
         colorIndex++;
     }
-    // place the legend outside the graph
+
+    // Place the legend completely to the right of the graph
     drawLegendOutsideGraph(performanceData, originalWidth);
 
     // Draw the title
@@ -76,12 +78,12 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
            plotConfig.textColor,
            2);
 
-    // Display the plot
+    // Display the graph
     namedWindow("Performance Analysis", WINDOW_NORMAL);
     imshow("Performance Analysis", plotImage);
     waitKey(1);
 
-    // Save the plot
+    // Save the graph
     imwrite(resourcesPath + "/performance_plot.png", plotImage);
 }
 
