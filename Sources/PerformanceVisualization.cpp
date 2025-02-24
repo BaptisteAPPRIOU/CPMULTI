@@ -3,10 +3,15 @@
 #include <sstream>
 
 void PerformanceVisualization::plotPerformance(const unordered_map<string, vector<double>>& performanceData) {
-    // Create the background with configuration values
+
+    int originalWidth = plotConfig.width;
+    int legendWidth = 250;  // width of the legend
+    plotConfig.width += legendWidth;  // add space for the legend
+    
+    // Create the plot image
     plotImage = Mat(plotConfig.height, plotConfig.width, CV_8UC3, plotConfig.backgroundColor);
 
-    // Find max and min values for better scaling
+    // Find the maximum and minimum values of time across all filters
     double maxTime = 0;
     double minTime = std::numeric_limits<double>::max();
     for (const auto& [filter, times] : performanceData) {
@@ -14,25 +19,22 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
         minTime = min(minTime, *min_element(times.begin(), times.end()));
     }
 
-    // Add padding to the max value for better visualization
-    maxTime *= 1.1;  // Add 10% padding
+    maxTime *= 1.1;  // Add 10% of padding
 
-    // Draw the grid first (if enabled)
+    // Draw grid if enabled
     if (plotConfig.showGrid) {
-        drawGrid();
+        drawGrid(originalWidth);
     }
 
-    // Draw axes with labels
-    drawAxes(maxTime);
+    // Draw the axes and labels
+    drawAxes(maxTime, originalWidth);
 
-    // Plot the data
+    // Draw the performance data
     int colorIndex = 0;
-    int legendY = 70;  // Start the legend below the title
-    
     for (const auto& [filter, times] : performanceData) {
         vector<Point> points;
         for (size_t i = 0; i < times.size(); i++) {
-            int x = getXCoordinate(i, times.size());
+            int x = getXCoordinate(i, times.size(), originalWidth);
             int y = getYCoordinate(times[i], maxTime);
             points.push_back(Point(x, y));
             
@@ -42,13 +44,13 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
                    plotConfig.colors[colorIndex % plotConfig.colors.size()], 
                    -1);
 
-            // Add value labels in microseconds
+            // Add time labels next to the points for better visibility
             stringstream ss;
-            ss << fixed << setprecision(0) << times[i] << "microseconds";  // Display in microseconds
+            ss << fixed << setprecision(0) << times[i] / 1000; // Divide by 1000 to get milliseconds
             putText(plotImage, ss.str(), 
-                   Point(x - 25, y - 10),
+                   Point(x - 15, y - 10),
                    FONT_HERSHEY_SIMPLEX, 
-                   plotConfig.fontSize * 0.6, 
+                   plotConfig.fontSize * 0.6,
                    plotConfig.textColor, 
                    1);
         }
@@ -60,42 +62,184 @@ void PerformanceVisualization::plotPerformance(const unordered_map<string, vecto
                  plotConfig.lineThickness);
         }
 
-        // Add an improved legend
-        if (plotConfig.showLegend) {
-            drawLegendEntry(filter, colorIndex, legendY, times);
-            legendY += 40;  // More space between legend entries
-        }
-
         colorIndex++;
     }
+    // place the legend outside the graph
+    drawLegendOutsideGraph(performanceData, originalWidth);
 
     // Draw the title
     int titleY = 40;
     putText(plotImage, plotConfig.title,
-           Point(plotConfig.width/2 - 200, titleY),
+           Point(originalWidth/2 - 100, titleY),
            FONT_HERSHEY_SIMPLEX,
            plotConfig.fontSize * 1.5,
            plotConfig.textColor,
            2);
 
-    // Display the graph
+    // Display the plot
     namedWindow("Performance Analysis", WINDOW_NORMAL);
     imshow("Performance Analysis", plotImage);
     waitKey(1);
 
-    // Save the graph
+    // Save the plot
     imwrite(resourcesPath + "/performance_plot.png", plotImage);
 }
 
+void PerformanceVisualization::drawLegendCompact(const unordered_map<string, vector<double>>& performanceData, int originalWidth) {
+    if (!plotConfig.showLegend) return;
+    
+    // Position of the legend (outside the graph)
+    int legendX = originalWidth - 150;  // reduce the width
+    int legendY = 80;
+    int legendSpacing = 30;
+    
+    // Draw the fond of the legend
+    Rect legendBackground(legendX - 10, legendY - 20, 200, performanceData.size() * legendSpacing + 30);
+    rectangle(plotImage, legendBackground, Scalar(245, 245, 245), -1);
+    rectangle(plotImage, legendBackground, Scalar(200, 200, 200), 1);
+    
+    // Draw legend title
+    putText(plotImage, "Legend", 
+            Point(legendX + 50, legendY - 5),
+            FONT_HERSHEY_SIMPLEX, 
+            plotConfig.fontSize, 
+            plotConfig.textColor, 
+            1);
+    
+    // Draw each legend entry
+    int colorIndex = 0;
+    legendY += 15;
+    
+    for (const auto& [filter, times] : performanceData) {
+        // colored rectangle
+        Rect colorRect(legendX, legendY, 15, 15);
+        rectangle(plotImage, colorRect, 
+                 plotConfig.colors[colorIndex % plotConfig.colors.size()], 
+                 -1);
+                 
+        // Calculate average time
+        double avgTime = accumulate(times.begin(), times.end(), 0.0) / times.size();
+        stringstream ss;
+        ss << filter << " (avg: " << fixed << setprecision(1) << avgTime << "μs)";
+        
+        putText(plotImage, ss.str(),
+               Point(legendX + 25, legendY + 12),
+               FONT_HERSHEY_SIMPLEX,
+               plotConfig.fontSize * 0.8,
+               plotConfig.textColor,
+               1);
+               
+        // Pass to the next line
+        legendY += legendSpacing;
+        colorIndex++;
+    }
+}
+void PerformanceVisualization::drawLegendBox(const unordered_map<string, vector<double>>& performanceData, int originalWidth) {
+    if (!plotConfig.showLegend) return;
+    
+    // Position of the legend
+    int legendX = originalWidth - 250;
+    int legendY = 80;
+    int legendSpacing = 25;
+    int legendWidth = 240;
+    int legendHeight = performanceData.size() * legendSpacing + 40;
+    
+    // Draw the fond of the legend
+    Rect legendBackground(legendX - 10, legendY - 30, legendWidth, legendHeight);
+    rectangle(plotImage, legendBackground, Scalar(255, 255, 255), -1);
+    rectangle(plotImage, legendBackground, Scalar(200, 200, 200), 1);
+    
+    // Draw legend title
+    putText(plotImage, "Legend", 
+            Point(legendX + legendWidth/2 - 30, legendY - 10),
+            FONT_HERSHEY_SIMPLEX, 
+            plotConfig.fontSize * 1.2, 
+            plotConfig.textColor, 
+            1);
+    
+    // Draw each legend entry
+    int colorIndex = 0;
+    for (const auto& [filter, times] : performanceData) {
+        // Draw colored rectangle
+        Rect colorRect(legendX, legendY + colorIndex * legendSpacing, 20, 15);
+        rectangle(plotImage, colorRect, 
+                 plotConfig.colors[colorIndex % plotConfig.colors.size()], 
+                 -1);
+                 
+        // Calculate average time
+        double avgTime = accumulate(times.begin(), times.end(), 0.0) / times.size();
+        
+        // Format average time in µs
+        stringstream ss;
+        ss << filter << " (avg: " << fixed << setprecision(1) << avgTime / 1000 << "k)";
+        
+        putText(plotImage, ss.str(),
+               Point(legendX + 30, legendY + colorIndex * legendSpacing + 12),
+               FONT_HERSHEY_SIMPLEX,
+               plotConfig.fontSize * 0.8,
+               plotConfig.textColor,
+               1);
+               
+        colorIndex++;
+    }
+}
+// Add the legend outside the graph
+void PerformanceVisualization::drawLegendOutside(const unordered_map<string, vector<double>>& performanceData, int originalWidth) {
+    if (!plotConfig.showLegend) return;
+    
+    // Position of departure of the legend (outside the graph)
+    int legendX = originalWidth + 20;  // 20 pixels after the end of the graph
+    int legendY = 100;  // beginning of the legend
+    int legendSpacing = 40;  // spacing between legend entries
+    
+    // Draw the fond of the legend
+    Rect legendBackground(legendX - 10, legendY - 30, 280, performanceData.size() * legendSpacing + 40);
+    rectangle(plotImage, legendBackground, Scalar(245, 245, 245), -1);
+    rectangle(plotImage, legendBackground, Scalar(200, 200, 200), 1);
+    
+    // Draw legend title
+    putText(plotImage, "Legend", 
+            Point(legendX + 90, legendY - 10),
+            FONT_HERSHEY_SIMPLEX, 
+            plotConfig.fontSize * 1.2, 
+            plotConfig.textColor, 
+            1);
+    
+    // Draw each legend entry
+    int colorIndex = 0;
+    for (const auto& [filter, times] : performanceData) {
 
-void PerformanceVisualization::drawGrid() {
-    const int stepX = (plotConfig.width - 100) / 10;  // 10 vertical lines
+        Rect colorRect(legendX, legendY, 20, 20);
+        rectangle(plotImage, colorRect, 
+                 plotConfig.colors[colorIndex % plotConfig.colors.size()], 
+                 -1);
+                 
+        double avgTime = accumulate(times.begin(), times.end(), 0.0) / times.size();
+        
+        stringstream ss;
+        ss << filter << " (avg: " << fixed << setprecision(1) << avgTime << "μs)";
+        
+        putText(plotImage, ss.str(),
+               Point(legendX + 30, legendY + 15),
+               FONT_HERSHEY_SIMPLEX,
+               plotConfig.fontSize,
+               plotConfig.textColor,
+               1);
+               
+        legendY += legendSpacing;
+        colorIndex++;
+    }
+}
+
+// limit of the graph
+void PerformanceVisualization::drawGrid(int plotWidth) {
+    const int stepX = (plotWidth - 100) / 10;  // 10 verticales lignes
     const int stepY = (plotConfig.height - 100) / 10;  // 10 horizontal lines
 
     Scalar gridColor(220, 220, 220);  // Light gray
 
-    // Draw vertical grid lines
-    for (int x = 50; x <= plotConfig.width - 50; x += stepX) {
+    // Draw grid lines vertically
+    for (int x = 50; x <= plotWidth - 50; x += stepX) {
         line(plotImage,
              Point(x, 50),
              Point(x, plotConfig.height - 50),
@@ -104,50 +248,55 @@ void PerformanceVisualization::drawGrid() {
              LINE_AA);
     }
 
-    // Draw horizontal grid lines
+    // Draw grid lines horizontally
     for (int y = 50; y <= plotConfig.height - 50; y += stepY) {
         line(plotImage,
              Point(50, y),
-             Point(plotConfig.width - 50, y),
+             Point(plotWidth - 50, y),
              gridColor,
              1,
              LINE_AA);
     }
 }
 
-void PerformanceVisualization::drawAxes(double maxTime) {
-    // Draw main axes
-    line(plotImage, 
-         Point(50, plotConfig.height - 50), 
-         Point(50, 50), 
-         plotConfig.axisColor, 
+// limit axes of the graph and labels
+void PerformanceVisualization::drawAxes(double maxTime, int plotWidth) {
+    // draw the principal axes
+    line(plotImage,
+         Point(50, plotConfig.height - 50),
+         Point(50, 50),
+         plotConfig.axisColor,
          plotConfig.lineThickness);
     
-    line(plotImage, 
-         Point(50, plotConfig.height - 50), 
-         Point(plotConfig.width - 50, plotConfig.height - 50), 
-         plotConfig.axisColor, 
+    line(plotImage,
+         Point(50, plotConfig.height - 50),
+         Point(plotWidth - 50, plotConfig.height - 50),
+         plotConfig.axisColor,
          plotConfig.lineThickness);
 
-    //  Y-axis labels (time values) in microseconds
+    // Y and X axis labels values (100, 200, 300...)
+    // round the maxTime to the nearest 100000
+    double maxScaleValue = ceil(maxTime / 100000.0) * 100000;
     int numYLabels = 10;
+    
     for (int i = 0; i <= numYLabels; i++) {
         int y = plotConfig.height - 50 - (i * (plotConfig.height - 100) / numYLabels);
-        double value = (maxTime * i) / numYLabels;
+        double value = (maxScaleValue * i) / numYLabels;
         
+        // only draw the label if it's a multiple of 1000
         stringstream ss;
-        ss << fixed << setprecision(0) << value << "microseconds";
+        ss << fixed << setprecision(0) << value / 1000;
         putText(plotImage, ss.str(),
-               Point(5, y + 5),
+               Point(20, y + 5),
                FONT_HERSHEY_SIMPLEX,
                plotConfig.fontSize * 0.8,
                plotConfig.textColor,
                1);
     }
 
-    // X-axis labels (thread numbers)
+    // X axis labels values (1, 2, 3...)
     for (int i = 1; i <= 10; i++) {
-        int x = getXCoordinate(i-1, 10);
+        int x = getXCoordinate(i-1, 10, plotWidth);
         putText(plotImage, to_string(i),
                Point(x - 10, plotConfig.height - 30),
                FONT_HERSHEY_SIMPLEX,
@@ -156,18 +305,34 @@ void PerformanceVisualization::drawAxes(double maxTime) {
                1);
     }
 
-    // axis titles in "microseconds"
-    string yLabelText = "Processing Time (microseconds)";
-    putText(plotImage, yLabelText,
-           Point(10, plotConfig.height/2),
-           FONT_HERSHEY_SIMPLEX,
-           plotConfig.fontSize,
-           plotConfig.textColor,
-           1,
-           LINE_AA);
+    // create a rectangle for the Y axis title
+    Rect yTitleRect(-15, plotConfig.height/2 - 150, 30, 300);
+    rectangle(plotImage, yTitleRect, Scalar(255, 255, 255), -1);
+    rectangle(plotImage, yTitleRect, Scalar(230, 230, 230), 1);
 
+    // Draw Y axis title text vertically
+    string yLabelText = "Processing Time";
+    
+    int fontFace = FONT_HERSHEY_SIMPLEX;
+    double fontScale = plotConfig.fontSize * 0.9;
+    int thickness = 1;
+    int lineType = LINE_AA;
+    int yPos = plotConfig.height/2 - 120;
+    
+    // Draw the characters one by one
+    vector<char> chars = {'P', 'r', 'o', 'c', 'e', 's', 's', 'i', 'n', 'g', ' ', 'T', 'i', 'm', 'e'};
+    
+    for (char c : chars) {
+        putText(plotImage, string(1, c), Point(0, yPos), fontFace, fontScale, plotConfig.textColor, thickness, lineType);
+        yPos += 20;
+    }
+    
+    // Draw the time unit
+    putText(plotImage, "(x1000 us)", Point(5, 40), fontFace, fontScale * 0.9, plotConfig.textColor, thickness, lineType);
+
+    // Draw X axis title
     putText(plotImage, plotConfig.xLabel,
-           Point(plotConfig.width/2 - 50, plotConfig.height - 10),
+           Point(plotWidth/2 - 50, plotConfig.height - 10),
            FONT_HERSHEY_SIMPLEX,
            plotConfig.fontSize,
            plotConfig.textColor,
@@ -175,32 +340,56 @@ void PerformanceVisualization::drawAxes(double maxTime) {
            LINE_AA);
 }
 
-
-void PerformanceVisualization::drawLegendEntry(const string& filter, int colorIndex, int legendY, const vector<double>& times) {
-    // Draw the colored rectangle
-    rectangle(plotImage, 
-             Point(plotConfig.width - 250, legendY), 
-             Point(plotConfig.width - 230, legendY + 20), 
-             plotConfig.colors[colorIndex % plotConfig.colors.size()], 
-             -1);
-    
-    // Add the filter name and statistics in microseconds
-    double avgTime = accumulate(times.begin(), times.end(), 0.0) / times.size();
-    stringstream ss;
-    ss << filter << " (avg: " << fixed << setprecision(1) << avgTime << "microseconds)";
-    
-    putText(plotImage, ss.str(),
-           Point(plotConfig.width - 220, legendY + 15),
-           FONT_HERSHEY_SIMPLEX,
-           plotConfig.fontSize,
-           plotConfig.textColor,
-           1);
+// modifiy the x coordinate of the point of the graph to fit the graph
+int PerformanceVisualization::getXCoordinate(int index, size_t totalPoints, int plotWidth) {
+    return 50 + (index * (plotWidth - 100) / (totalPoints - 1));
 }
+void PerformanceVisualization::drawLegendOutsideGraph(const unordered_map<string, vector<double>>& performanceData, int originalWidth) {
+    if (!plotConfig.showLegend) return;
+    
+    int legendX = originalWidth + 20;
+    int legendY = 100;
+    int legendSpacing = 25;
+    int legendWidth = 200;
+    int legendHeight = performanceData.size() * legendSpacing + 40;
+    
+    // Draw a vertical line to separate the graph from the legend
+    line(plotImage, 
+         Point(originalWidth, 50), 
+         Point(originalWidth, plotConfig.height - 50),
+         Scalar(200, 200, 200), 
+         1, 
+         LINE_AA);
+    
+    Rect legendBackground(legendX, legendY - 30, legendWidth, legendHeight);
+    rectangle(plotImage, legendBackground, Scalar(255, 255, 255), -1);
+    rectangle(plotImage, legendBackground, Scalar(200, 200, 200), 1);
+    
+    putText(plotImage, "Legend", 
+            Point(legendX + legendWidth/2 - 30, legendY - 10),
+            FONT_HERSHEY_SIMPLEX, 
+            plotConfig.fontSize * 1.2, 
+            plotConfig.textColor, 
+            1);
+    
+    int colorIndex = 0;
+    for (const auto& [filter, times] : performanceData) {
+        Rect colorRect(legendX + 10, legendY + colorIndex * legendSpacing, 20, 15);
+        rectangle(plotImage, colorRect, 
+                 plotConfig.colors[colorIndex % plotConfig.colors.size()], 
+                 -1);
 
-int PerformanceVisualization::getXCoordinate(int index, size_t totalPoints) {
-    return 50 + (index * (plotConfig.width - 100) / (totalPoints - 1));
-}
-
-int PerformanceVisualization::getYCoordinate(double value, double maxValue) {
-    return plotConfig.height - 50 - (int)((value / maxValue) * (plotConfig.height - 100));
+        double avgTime = accumulate(times.begin(), times.end(), 0.0) / times.size();
+        stringstream ss;
+        ss << filter << " (avg: " << fixed << setprecision(1) << avgTime / 1000 << "k)";
+        
+        putText(plotImage, ss.str(),
+               Point(legendX + 40, legendY + colorIndex * legendSpacing + 12),
+               FONT_HERSHEY_SIMPLEX,
+               plotConfig.fontSize * 0.8,
+               plotConfig.textColor,
+               1);
+               
+        colorIndex++;
+    }
 }
