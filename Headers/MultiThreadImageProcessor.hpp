@@ -23,12 +23,14 @@ public:
 
     Mat applyFilter(const string& filterName, const Mat& inputImage);
     pair<Mat, double> applyFilterTimed(const string& filterName, const Mat& inputImage);
+    unordered_map<string, Mat> applyAllFiltersWithCutLines(const Mat& inputImage);
 
     void setNumThreads(int numThreads);
     int getNumThreads() const;
 
 private:
     int numThreads;
+    const Scalar YELLOW_COLOR;
 
     // Map for dynamically selecting filters
     unordered_map<string, function<Mat(const Mat&)>> filterMap;

@@ -15,7 +15,7 @@ DenoisingFilter::~DenoisingFilter() {
 }
 
 void DenoisingFilter::setStrength(float strength) {
-    // ✅ Ensure strength is in a reasonable range (1-30)
+    // Ensure strength is in a reasonable range (1-30)
     hStrength = max(1.0f, min(strength, 30.0f));
 }
 
@@ -26,7 +26,12 @@ Mat DenoisingFilter::applyFilter(const Mat& inputFrame) {
     }
 
     Mat denoisedFrame;
-    fastNlMeansDenoisingColored(inputFrame, denoisedFrame, hStrength, hStrength, 7, 21); // Apply Non-Local Means Denoising
+    fastNlMeansDenoisingColored(inputFrame, denoisedFrame, hStrength, hStrength, 7, 21);
 
-    return denoisedFrame; // Return the processed image
+    // Ensure the output has the same number of channels as the input
+    if (denoisedFrame.channels() != inputFrame.channels()) {
+        cvtColor(denoisedFrame, denoisedFrame, COLOR_GRAY2BGR); // Convert grayscale to BGR
+    }
+
+    return denoisedFrame;
 }

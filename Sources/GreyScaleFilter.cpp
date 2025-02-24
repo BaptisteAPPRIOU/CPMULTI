@@ -1,6 +1,6 @@
 #include "Headers/GreyScaleFilter.hpp"
 
-GreyScaleFilter::GreyScaleFilter() {
+GreyScaleFilter::GreyScaleFilter() : totalTime(0), frameCount(0) {
     // namedWindow(windowName, WINDOW_NORMAL);
 }
 
@@ -15,6 +15,8 @@ Mat GreyScaleFilter::applyFilter(const Mat& inputFrame) {
         cerr << "Error: Empty input frame provided to GreyScaleFilter." << endl;
         return Mat();
     }
+
+    auto start = chrono::high_resolution_clock::now(); // Start the clock
 
     Mat grayFrame;
     cvtColor(inputFrame, grayFrame, COLOR_BGR2GRAY); // Convert to greyscale
