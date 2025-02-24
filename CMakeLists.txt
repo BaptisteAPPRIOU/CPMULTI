@@ -5,7 +5,7 @@ project(CPMULTI VERSION 0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Find OpenCV first
+# Find OpenCV
 find_package(OpenCV REQUIRED)
 
 # Define directories for sources, headers, and resources
@@ -25,14 +25,10 @@ file(GLOB_RECURSE PROJECT_SOURCES
 )
 file(GLOB_RECURSE PROJECT_HEADERS "${HEADER_DIR}/*.hpp")
 
-# Output found files for debugging
-message(STATUS "Found source files: ${PROJECT_SOURCES}")
-message(STATUS "Found header files: ${PROJECT_HEADERS}")
-
 # Add executable target
 add_executable(CPMULTI ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 
-# Include header directories and link libraries (only once)
+# Include header directories and link libraries
 target_include_directories(CPMULTI PRIVATE 
     ${CMAKE_SOURCE_DIR}
     ${HEADER_DIR} 
