@@ -28,31 +28,32 @@ Mat FourierFilter::applyFilter(const Mat& inputFrame) {
     else
         gray = inputFrame.clone();
 
-    // Expand the image to an optimal size for DFT
-    Mat padded;
-    int m = getOptimalDFTSize(gray.rows);
-    int n = getOptimalDFTSize(gray.cols);
-    copyMakeBorder(gray, padded, 0, m - gray.rows, 0, n - gray.cols, BORDER_CONSTANT, Scalar::all(0));
+    // Instead of padding to an optimal size, work with the original image.
+    Mat floatImg;
+    gray.convertTo(floatImg, CV_32F);
 
-    // Prepare planes for complex DFT
-    Mat planes[] = { Mat_<float>(padded), Mat::zeros(padded.size(), CV_32F) };
     Mat complexI;
-    merge(planes, 2, complexI);
+    dft(floatImg, complexI, DFT_COMPLEX_OUTPUT);
 
-    // Compute DFT
-    dft(complexI, complexI);
-
-    // Compute the magnitude and apply logarithmic scaling
+    // Split into real and imaginary parts
+    Mat planes[2];
     split(complexI, planes);
     magnitude(planes[0], planes[1], planes[0]);
     Mat magI = planes[0];
+
+    // Switch to logarithmic scale: log(1 + magnitude)
     magI += Scalar::all(1);
     log(magI, magI);
 
-    // Crop if necessary to have even dimensions
-    magI = magI(Rect(0, 0, magI.cols & -2, magI.rows & -2));
+    // If the image has odd dimensions, crop one row/column to make them even.
+    if (magI.cols % 2 == 1) {
+        magI = magI(Rect(0, 0, magI.cols - 1, magI.rows));
+    }
+    if (magI.rows % 2 == 1) {
+        magI = magI(Rect(0, 0, magI.cols, magI.rows - 1));
+    }
 
-    // Rearrange quadrants: move origin to image center
+    // Rearrange the quadrants so that the origin is at the image center.
     int cx = magI.cols / 2;
     int cy = magI.rows / 2;
     Mat q0(magI, Rect(0, 0, cx, cy));   // Top-Left
@@ -69,7 +70,7 @@ Mat FourierFilter::applyFilter(const Mat& inputFrame) {
     q2.copyTo(q1);
     tmp.copyTo(q2);
 
-    // Normalize the result for display
+    // Normalize the magnitude image to the range [0,1] for display.
     normalize(magI, magI, 0, 1, NORM_MINMAX);
 
     return magI;
