@@ -5,7 +5,7 @@ using namespace cv;
 using namespace std;
 
 GaussianFilter::GaussianFilter(int size, double sigma) 
-    : kernelSize(size), sigmaX(sigma), sigmaY(sigma) {
+    : kernelSize(15), sigmaX(5.0), sigmaY(5.0) {
     setKernelSize(size);  // Ensure the size is valid
 }
 
@@ -16,7 +16,7 @@ GaussianFilter::~GaussianFilter() {
 void GaussianFilter::setKernelSize(int size) {
     // Ensure kernel size is odd and at least 3
     if (size % 2 == 0) size++;
-    kernelSize = max(3, size);
+    kernelSize = max(15, size);
 }
 
 void GaussianFilter::setSigma(double sigma) {
@@ -35,9 +35,14 @@ Mat GaussianFilter::applyFilter(const Mat& inputFrame) {
     }
 
     Mat blurredFrame;
+    // Apply stronger blur
     GaussianBlur(inputFrame, blurredFrame, 
                  Size(kernelSize, kernelSize), 
                  sigmaX, sigmaY);
+    
+    // Enhance contrast after blur
+    Mat contrastEnhanced;
+    blurredFrame.convertTo(contrastEnhanced, -1, 1.2, 10); // Increase contrast
 
-    return blurredFrame;
+    return contrastEnhanced;
 }
