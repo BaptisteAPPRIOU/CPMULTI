@@ -9,7 +9,9 @@ ResizeRotateFilter::ResizeRotateFilter(double scale, double angle)
 }
 
 ResizeRotateFilter::~ResizeRotateFilter() {
-    destroyWindow(windowName);
+    #ifdef __APPLE__
+        destroyWindow(windowName);
+    #endif
 }
 
 void ResizeRotateFilter::setScale(double scale) {
@@ -34,15 +36,16 @@ Mat ResizeRotateFilter::applyFilter(const Mat& inputFrame) {
         return Mat();
     }
     
-    // Resize the image
+    // Resize the image using the scale factor
     Mat resized;
-    resize(inputFrame, resized, Size(), scale, scale);
+    resize(inputFrame, resized, Size(), scale, scale, INTER_LINEAR);
 
-    // Rotate the image
+    // Rotate the image around its center
     Point2f center(resized.cols / 2.0F, resized.rows / 2.0F);
     Mat rotMat = getRotationMatrix2D(center, angle, 1.0);
     Mat rotated;
-    warpAffine(resized, rotated, rotMat, resized.size());
+    // Use the same size as resized; you may also adjust border mode if needed.
+    warpAffine(resized, rotated, rotMat, resized.size(), INTER_LINEAR, BORDER_CONSTANT);
 
     return rotated;
 }
