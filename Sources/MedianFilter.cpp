@@ -9,7 +9,9 @@ MedianFilter::MedianFilter(int size) {
 }
 
 MedianFilter::~MedianFilter() {
-    destroyWindow(windowName);
+    #ifdef __APPLE__
+        destroyWindow(windowName);
+    #endif
 }
 
 void MedianFilter::setKernelSize(int size) {

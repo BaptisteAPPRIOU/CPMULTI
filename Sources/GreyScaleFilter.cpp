@@ -5,7 +5,9 @@ GreyScaleFilter::GreyScaleFilter() : totalTime(0), frameCount(0) {
 }
 
 GreyScaleFilter::~GreyScaleFilter() {
-    destroyWindow(windowName);
+    #ifdef __APPLE__
+        destroyWindow(windowName);
+    #endif
 }
 
 Mat GreyScaleFilter::applyFilter(const Mat& inputFrame) {

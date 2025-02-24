@@ -12,6 +12,9 @@ MultiThreadImageProcessor::MultiThreadImageProcessor(int numThreads) : numThread
     filterMap["median"] = [this](const Mat& img) { return applyFilterTimed("median", img).first; };
     filterMap["denoising"] = [this](const Mat& img) { return applyFilterTimed("denoising", img).first; };
     filterMap["canny"] = [this](const Mat& img) { return applyFilterTimed("canny", img).first; };
+    filterMap["sobel"] = [this](const Mat& img) { return applyFilterTimed("sobel", img).first; };
+    filterMap["fourier"] = [this](const Mat& img) { return applyFilterTimed("fourier", img).first; };
+    filterMap["resize"] = [this](const Mat& img) { return applyFilterTimed("resize", img).first; };
 }
 
 MultiThreadImageProcessor::~MultiThreadImageProcessor() {}
@@ -45,8 +48,16 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
     } else if (filterName == "canny") {
         CannyFilter cannyFilter;
         return processFilter(inputImage, cannyFilter);
+    } else if (filterName == "sobel") {
+        SobelFilter sobelFilter(1, 0, 3);
+        return processFilter(inputImage, sobelFilter);
+    } else if (filterName == "fourier") {
+        FourierFilter fourierFilter;
+        return processFilter(inputImage, fourierFilter);
+    } else if (filterName == "resize") {
+        ResizeRotateFilter resizeFilter(0.5, 0.0);
+        return processFilter(inputImage, resizeFilter);
     }
-    
     
     else {
         cout << "Error: Unknown filter name '" << filterName << "'" << endl;

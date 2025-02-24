@@ -9,7 +9,9 @@ DenoisingFilter::DenoisingFilter(float strength) {
 }
 
 DenoisingFilter::~DenoisingFilter() {
-    destroyWindow(windowName);
+    #ifdef __APPLE__
+        destroyWindow(windowName);
+    #endif
 }
 
 void DenoisingFilter::setStrength(float strength) {

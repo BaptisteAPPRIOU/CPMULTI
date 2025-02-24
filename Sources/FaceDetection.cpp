@@ -7,7 +7,9 @@ FaceDetection::FaceDetection() {
 }
 
 FaceDetection::~FaceDetection() {
-  destroyAllWindows();
+  #ifdef __APPLE__
+        destroyWindow(windowName);
+    #endif
 }
 
 Mat FaceDetection::applyFilter(const Mat& inputFrame) {
