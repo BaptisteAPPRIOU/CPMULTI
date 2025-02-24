@@ -76,6 +76,7 @@ bool KeyHandler::processFilter(const Mat& frame, const string& filterName) {
     auto [resultFrame, duration] = imageProcessor.applyFilterTimed(filterName, frame);
     if (!resultFrame.empty()) {
         namedWindow(filterName + " Feed", WINDOW_NORMAL);
+        resizeWindow(filterName + " Feed", 800, 600);
         imshow(filterName + " Feed", resultFrame);
         cout << filterName << " processing time with " << imageProcessor.getNumThreads() << " threads: " << duration << " µs" << endl;
         return true;
