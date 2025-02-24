@@ -21,6 +21,7 @@ void KeyHandler::setupFilterMap() {
     filterMap['k'] = "sobel";
     filterMap['l'] = "fourier";
     filterMap['m'] = "resize";
+    filterMap['n'] = "rotate";
     filterMap['x'] = "cut_lines";
 }
 
@@ -88,7 +89,7 @@ void KeyHandler::handleTestCase(const Mat& frame) {
     Mat savedSnapshot = loadSnapshot("snapshot.jpg");
     if (savedSnapshot.empty()) return;
 
-    vector<string> filters = {"greyscale", "gaussian", "median", "denoising", "canny", "sobel", "fourier", "resize"};
+    vector<string> filters = {"greyscale", "gaussian", "median", "denoising", "canny", "sobel", "fourier", "rotate"};
 
     for (const auto& filterName : filters) {
         cout << "\nTesting " << filterName << " Filter:" << endl;
