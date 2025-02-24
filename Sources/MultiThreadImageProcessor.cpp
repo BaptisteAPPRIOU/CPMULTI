@@ -109,3 +109,59 @@ void MultiThreadImageProcessor::setNumThreads(int numThreads) {
 int MultiThreadImageProcessor::getNumThreads() const {
     return numThreads;
 }
+
+unordered_map<string, Mat> MultiThreadImageProcessor::applyAllFiltersWithCutLines(const Mat& inputImage) {
+    if (inputImage.empty()) {
+        cerr << "Error: Empty image provided for processing" << endl;
+        return {};
+    }
+
+    vector<string> filters = {"greyscale", "gaussian", "median", "denoising", "canny"};
+    unordered_map<string, Mat> results;
+    const int visualThreads = 10; // Use 4 threads for clear visualization
+    
+    for (const auto& filterName : filters) {
+        Mat processedImage = inputImage.clone();
+        int segmentHeight = processedImage.rows / visualThreads;
+        
+        // Process each segment
+        vector<thread> threads;
+        for (int i = 0; i < visualThreads; i++) {
+            int startRow = i * segmentHeight;
+            int endRow = (i == visualThreads - 1) ? processedImage.rows : (i + 1) * segmentHeight;
+            
+            threads.emplace_back([&, startRow, endRow, filterName]() {
+                Mat segment = inputImage(Range(startRow, endRow), Range::all());
+                Mat processedSegment = applyFilter(filterName, segment);
+                
+                // Convert to BGR if grayscale
+                if (processedSegment.channels() == 1) {
+                    cvtColor(processedSegment, processedSegment, COLOR_GRAY2BGR);
+                }
+                
+                processedSegment.copyTo(processedImage(Range(startRow, endRow), Range::all()));
+            });
+        }
+
+        // Wait for all threads to complete
+        for (auto& t : threads) {
+            t.join();
+        }
+
+        // Draw thread separation lines
+        for (int i = 1; i < visualThreads; i++) {
+            int y = i * segmentHeight;
+            line(processedImage, Point(0, y), Point(processedImage.cols, y), 
+                 Scalar(0, 255, 255), 2); // Yellow line
+            
+            // Add thread number label
+            putText(processedImage, "Thread " + to_string(i), 
+                   Point(10, y - 5), FONT_HERSHEY_SIMPLEX, 0.5, 
+                   Scalar(0, 255, 255), 1);
+        }
+
+        results[filterName] = processedImage;
+    }
+
+    return results;
+}

@@ -18,6 +18,7 @@ void KeyHandler::setupFilterMap() {
     filterMap['o'] = "median";
     filterMap['p'] = "denoising";
     filterMap['c'] = "canny";
+    filterMap['x'] = "cut_lines";
 }
 
 // Handle key press dynamically using function map
@@ -25,6 +26,11 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
     if (key == 'q') return false;
     if (key == 't') {
         handleTestCase(frame);
+        return true;
+    }
+
+    if (key == 'x') {  // Process image with all filters using 10 threads and yellow cut lines
+        handleAllFiltersWithCutLines(frame);
         return true;
     }
 
@@ -99,4 +105,32 @@ void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterN
         imageProcessor.setNumThreads(threads);
         processFilter(snapshot, filterName);
     }
+}
+
+void KeyHandler::handleAllFiltersWithCutLines(const Mat& frame) {
+    if (frame.empty()) {
+        cerr << "Error: Empty frame provided" << endl;
+        return;
+    }
+
+    // Save current frame
+    imwrite(resourcesPath + "/snapshot.jpg", frame);
+    Mat savedSnapshot = loadSnapshot("snapshot.jpg");
+    if (savedSnapshot.empty()) return;
+
+    // Process all filters with thread visualization
+    auto results = imageProcessor.applyAllFiltersWithCutLines(savedSnapshot);
+
+    // Display results
+    for (const auto& [filterName, resultFrame] : results) {
+        if (!resultFrame.empty()) {
+            string windowName = filterName + " with Thread Lines";
+            namedWindow(windowName, WINDOW_NORMAL);
+            resizeWindow(windowName, 800, 600);
+            imshow(windowName, resultFrame);
+            cout << "Displaying " << windowName << endl;
+        }
+    }
+    
+    cout << "Press any key to continue. Windows will update automatically." << endl;
 }
