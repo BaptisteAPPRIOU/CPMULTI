@@ -5,7 +5,9 @@ GreyScaleFilter::GreyScaleFilter() {
 }
 
 GreyScaleFilter::~GreyScaleFilter() {
-    destroyWindow(windowName);
+    #ifdef __APPLE__
+        destroyWindow(windowName);
+    #endif
 }
 
 Mat GreyScaleFilter::applyFilter(const Mat& inputFrame) {

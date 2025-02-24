@@ -10,7 +10,9 @@ GaussianFilter::GaussianFilter(int size, double sigma)
 }
 
 GaussianFilter::~GaussianFilter() {
-    destroyWindow(windowName);
+    #ifdef __APPLE__
+        destroyWindow(windowName);
+    #endif
 }
 
 void GaussianFilter::setKernelSize(int size) {
