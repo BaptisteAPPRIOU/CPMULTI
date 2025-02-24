@@ -13,14 +13,14 @@ using namespace std;
 class PerformanceVisualization {
 public:
     struct PlotConfig {
-        int width = 1200;      // Increased width
-        int height = 800;      // Increased height
+        int width = 1200;
+        int height = 800;
         Scalar backgroundColor = Scalar(255, 255, 255);
         Scalar textColor = Scalar(0, 0, 0);
         Scalar axisColor = Scalar(0, 0, 0);
         int lineThickness = 2;
-        int pointSize = 4;     // Increased point size
-        double fontSize = 0.6;  // Increased font size
+        int pointSize = 4;
+        double fontSize = 0.6;
         string title = "Filter Performance vs Thread Count";
         string xLabel = "Number of Threads";
         string yLabel = "Processing Time (ms)";
@@ -49,10 +49,16 @@ private:
     Mat plotImage;
     string resourcesPath;
 
-    void drawGrid();
-    void drawAxes(double maxTime);
-    void drawLegendEntry(const string& filter, int colorIndex, int legendY, const vector<double>& times);
-    int getXCoordinate(int index, size_t totalPoints);
+    void drawGrid(int plotWidth);
+    void drawAxes(double maxTime, int plotWidth);
+    
+    // Legend drawing functions
+    void drawLegendOutside(const unordered_map<string, vector<double>>& performanceData, int originalWidth);
+    void drawLegendCompact(const unordered_map<string, vector<double>>& performanceData, int originalWidth);
+    void drawLegendBox(const unordered_map<string, vector<double>>& performanceData, int originalWidth);
+    void drawLegendOutsideGraph(const unordered_map<string, vector<double>>& performanceData, int originalWidth);
+    
+    int getXCoordinate(int index, size_t totalPoints, int plotWidth);
     int getYCoordinate(double value, double maxValue);
 };
 
