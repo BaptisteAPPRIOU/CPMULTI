@@ -15,6 +15,7 @@ MultiThreadImageProcessor::MultiThreadImageProcessor(int numThreads) : numThread
     filterMap["sobel"] = [this](const Mat& img) { return applyFilterTimed("sobel", img).first; };
     filterMap["fourier"] = [this](const Mat& img) { return applyFilterTimed("fourier", img).first; };
     filterMap["resize"] = [this](const Mat& img) { return applyFilterTimed("resize", img).first; };
+    filterMap["rotate"] = [this](const Mat& img) { return applyFilterTimed("rotate", img).first; };
 }
 
 MultiThreadImageProcessor::~MultiThreadImageProcessor() {}
@@ -57,6 +58,9 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
     } else if (filterName == "resize") {
         ResizeRotateFilter resizeFilter(0.5, 0.0);
         return processFilter(inputImage, resizeFilter);
+    } else if (filterName == "rotate") {
+        ResizeRotateFilter rotateFilter(1.0, 45.0);
+        return processFilter(inputImage, rotateFilter);
     }
     
     else {
@@ -68,7 +72,8 @@ pair<Mat, double> MultiThreadImageProcessor::applyFilterTimed(const string& filt
 // Generalized function to process any filter with threading
 template<typename FilterType>
 pair<Mat, double> MultiThreadImageProcessor::processFilter(const Mat& inputImage, FilterType& filter) {
-    Mat finalImage = Mat(inputImage.rows, inputImage.cols, inputImage.type()); // Match input type
+    Mat sampleOutput = filter.applyFilter(inputImage);
+    Mat finalImage = Mat(sampleOutput.rows, sampleOutput.cols, sampleOutput.type());
 
     auto startTime = chrono::high_resolution_clock::now();
 
