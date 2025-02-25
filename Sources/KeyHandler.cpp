@@ -90,18 +90,27 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {                         
     return true;
 }
 
-void KeyHandler::handleFilterCase(const char key, const Mat& frame) {                                                           // Handle individual filter cases based on the key
+void KeyHandler::handleFilterCase(const char key, const Mat& frame) {                                                       // Handle the filter case for the key
     imwrite(resourcesPath + "/snapshot.jpg", frame);
     Mat savedSnapshot = loadSnapshot("snapshot.jpg");
     if (savedSnapshot.empty()) return;
 
     auto it = filterMap.find(key);
     if (it != filterMap.end()) {
-        processFilter(savedSnapshot, it->second);
+        string filterName = it->second;
+        auto [resultFrame, duration] = imageProcessor.sequentialFilter(filterName, savedSnapshot);
+        
+        if (!resultFrame.empty()) {
+            namedWindow(filterName + " Feed", WINDOW_NORMAL);
+            resizeWindow(filterName + " Feed", 800, 600);
+            imshow(filterName + " Feed", resultFrame);
+            cout << filterName << " processing time (sequential): " << duration << " us" << endl;
+        }
     } else {
         cerr << "Error: Unknown filter key '" << key << "'" << endl;
     }
 }
+
 
 Mat KeyHandler::loadSnapshot(const string& filename) {                                                                      // Load the snapshot image from the file
     Mat snapshot = imread(resourcesPath + "/" + filename);
