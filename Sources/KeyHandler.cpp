@@ -31,6 +31,9 @@ void KeyHandler::setupFilterMap() {
     filterMap['3'] = "visualize_median";
     filterMap['4'] = "visualize_denoising";
     filterMap['5'] = "visualize_canny";
+    filterMap['6'] = "visualize_sobel";
+    filterMap['7'] = "visualize_fourier";
+    filterMap['8'] = "visualize_rotate";
 }
 
 void KeyHandler::setupVisualization(const string& filterType) {
@@ -69,14 +72,9 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
         handleVisualizationRequest("all");
         return true;
     }
-    // Check if the key corresponds to a filter
-    auto it = filterMap.find(key);
-    if (it != filterMap.end()) {
-        handleFilterCase(key, frame);
-    // Handle visualization requests
 
     // Individual filter visualizations
-    if (key >= '1' && key <= '5') {
+    if (key >= '1' && key <= '8') {
         string filter;
         switch(key) {
             case '1': filter = "greyscale"; break;
@@ -84,6 +82,10 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
             case '3': filter = "median"; break;
             case '4': filter = "denoising"; break;
             case '5': filter = "canny"; break;
+            case '6': filter = "sobel"; break;
+            case '7': filter = "fourier"; break;
+            case '8': filter = "rotate"; break;
+            default: break;
         }
         handleVisualizationRequest(filter);
         return true;
@@ -94,7 +96,6 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
         handleFilterCase(key, frame);
     }
     return true;
-}
 }
 
 void KeyHandler::handleFilterCase(const char key, const Mat& frame) {
@@ -147,12 +148,15 @@ void KeyHandler::handleTestCase(const Mat& frame) {
 
     generatePerformanceGraph();
     cout << "\nPerformance testing completed. Use these keys for visualization:\n"
-         << "  'v' - View all filters\n"
-         << "  '1' - Greyscale filter only\n"
-         << "  '2' - Gaussian filter only\n"
-         << "  '3' - Median filter only\n"
-         << "  '4' - Denoising filter only\n"
-         << "  '5' - Canny filter only\n";
+        << "  'v' - View all filters\n"
+        << "  '1' - Greyscale filter only\n"
+        << "  '2' - Gaussian filter only\n"
+        << "  '3' - Median filter only\n"
+        << "  '4' - Denoising filter only\n"
+        << "  '5' - Canny filter only\n"
+        << "  '6' - Sobel filter only\n"
+        << "  '7' - Fourier filter only\n"
+        << "  '8' - Rotate filter only\n";
 }
 
 void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterName) {
@@ -259,6 +263,9 @@ Scalar KeyHandler::getColorForFilter(const string& filterName) {
     if (filterName == "median")    return Scalar(255, 0, 0);    // Blue
     if (filterName == "denoising") return Scalar(0, 255, 0);    // Green
     if (filterName == "canny")     return Scalar(255, 128, 0);  // Orange
+    if (filterName == "sobel")     return Scalar(0, 255, 255);  // Yellow
+    if (filterName == "fourier")   return Scalar(255, 0, 255);  // Magenta
+    if (filterName == "resize")    return Scalar(0, 255, 255);  // Cyan
     return Scalar(0, 0, 0);  // Black (default)
 }
 
