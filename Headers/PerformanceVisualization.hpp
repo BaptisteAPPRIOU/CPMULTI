@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 #include <numeric>
+#include <iomanip>
+#include <sstream>
 
 using namespace cv;
 using namespace std;
@@ -31,7 +33,10 @@ public:
             Scalar(0, 255, 0),     // Green
             Scalar(0, 0, 255),     // Red
             Scalar(255, 165, 0),   // Orange
-            Scalar(128, 0, 128)    // Purple
+            Scalar(128, 0, 128),    // Purple
+            Scalar(0, 255, 255),    // Yellow
+            Scalar(255, 0, 255),    // Magenta
+            Scalar(0, 255, 255)     // Cyan
         };
     };
 

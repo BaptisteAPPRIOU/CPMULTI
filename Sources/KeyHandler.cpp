@@ -1,20 +1,12 @@
 #include "Headers/KeyHandler.hpp"
-#include <iostream>
-#include <filesystem>
-#include <thread>
-#include <iomanip>
-#include <numeric>
 
-using namespace cv;
-using namespace std;
-
-KeyHandler::KeyHandler(MultiThreadImageProcessor& processor, string resourcesPath)
+KeyHandler::KeyHandler(MultiThreadImageProcessor& processor, string resourcesPath)                                      // Constructor setting up the filter map and visualization
     : imageProcessor(processor), resourcesPath(resourcesPath) {
     setupFilterMap();
     setupVisualization();
 }
 
-void KeyHandler::setupFilterMap() {
+void KeyHandler::setupFilterMap() {                                                                                     // Set up the filter map with key-value pairs
     filterMap['g'] = "greyscale";
     filterMap['i'] = "gaussian";
     filterMap['o'] = "median";
@@ -36,7 +28,7 @@ void KeyHandler::setupFilterMap() {
     filterMap['8'] = "visualize_rotate";
 }
 
-void KeyHandler::setupVisualization(const string& filterType) {
+void KeyHandler::setupVisualization(const string& filterType) {                                                          // Set up the visualization configuration
     PerformanceVisualization::PlotConfig config;
     
     if (filterType != "all") {
@@ -55,7 +47,7 @@ void KeyHandler::setupVisualization(const string& filterType) {
     performanceViz.setConfig(config);
 }
 
-bool KeyHandler::handleKeyPress(char key, Mat& frame) {
+bool KeyHandler::handleKeyPress(char key, Mat& frame) {                                                                     // Handle key press events
     if (key == 'q') return false;
     
     if (key == 't') {
@@ -63,7 +55,7 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
         return true;
     }
 
-    if (key == 'x') {  // Process image with all filters using 10 threads and yellow cut lines
+    if (key == 'x') { 
         handleAllFiltersWithCutLines(frame);
         return true;
     }
@@ -98,7 +90,7 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {
     return true;
 }
 
-void KeyHandler::handleFilterCase(const char key, const Mat& frame) {
+void KeyHandler::handleFilterCase(const char key, const Mat& frame) {                                                           // Handle individual filter cases based on the key
     imwrite(resourcesPath + "/snapshot.jpg", frame);
     Mat savedSnapshot = loadSnapshot("snapshot.jpg");
     if (savedSnapshot.empty()) return;
@@ -111,7 +103,7 @@ void KeyHandler::handleFilterCase(const char key, const Mat& frame) {
     }
 }
 
-Mat KeyHandler::loadSnapshot(const string& filename) {
+Mat KeyHandler::loadSnapshot(const string& filename) {                                                                      // Load the snapshot image from the file
     Mat snapshot = imread(resourcesPath + "/" + filename);
     if (snapshot.empty()) {
         cerr << "Error: Unable to load snapshot image." << endl;
@@ -119,7 +111,7 @@ Mat KeyHandler::loadSnapshot(const string& filename) {
     return snapshot;
 }
 
-bool KeyHandler::processFilter(const Mat& frame, const string& filterName) {
+bool KeyHandler::processFilter(const Mat& frame, const string& filterName) {                                                // Process the filter and display the result
     auto [resultFrame, duration] = imageProcessor.applyFilterTimed(filterName, frame);
     if (!resultFrame.empty()) {
         namedWindow(filterName + " Feed", WINDOW_NORMAL);
@@ -132,7 +124,7 @@ bool KeyHandler::processFilter(const Mat& frame, const string& filterName) {
     return false;
 }
 
-void KeyHandler::handleTestCase(const Mat& frame) {
+void KeyHandler::handleTestCase(const Mat& frame) {                                                                         // Handle the test case for all filters with different threads
     imwrite(resourcesPath + "/snapshot.jpg", frame);
     Mat savedSnapshot = loadSnapshot("snapshot.jpg");
     if (savedSnapshot.empty()) return;
@@ -144,13 +136,13 @@ void KeyHandler::handleTestCase(const Mat& frame) {
     for (const auto& filterName : filters) {
         cout << "\nTesting " << filterName << " Filter:" << endl;
         
-        // 🔹 Show each filter result before moving to the next one
+        // Show each filter result before moving to the next one
         auto [resultFrame, duration] = imageProcessor.applyFilterTimed(filterName, savedSnapshot);
         if (!resultFrame.empty()) {
             namedWindow(filterName + " Feed", WINDOW_NORMAL);
             resizeWindow(filterName + " Feed", 800, 600);
             imshow(filterName + " Feed", resultFrame);
-            waitKey(500);  // Keep the window visible for 500ms before continuing
+            waitKey(500);
         }
         
         performThreadingTest(savedSnapshot, filterName);
@@ -168,19 +160,17 @@ void KeyHandler::handleTestCase(const Mat& frame) {
         << "  '7' - Fourier filter only\n"
         << "  '8' - Rotate filter only\n";
 
-    waitKey(1);  // Ensure OpenCV updates the windows
+    waitKey(1);
 }
 
 
-void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterName) {
+void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterName) {                                          // Perform threading test for the filter
     vector<double>& timings = performanceData[filterName];
     timings.clear();
 
-    // Test with different thread counts (1-10)
-    for (int threads = 1; threads <= 10; threads++) {
+    for (int threads = 1; threads <= 10; threads++) {                                                                           // Test with different thread counts (1-10)
         imageProcessor.setNumThreads(threads);
         
-        // Run multiple trials for more stable results
         const int numTrials = 3;
         double totalDuration = 0;
         
@@ -199,7 +189,7 @@ void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterN
     showPerformanceStats(filterName, timings);
 }
 
-void KeyHandler::showPerformanceStats(const string& filterName, const vector<double>& times) {
+void KeyHandler::showPerformanceStats(const string& filterName, const vector<double>& times) {                                  // Show the performance statistics for the filter
     double sum = accumulate(times.begin(), times.end(), 0.0);
     double mean = sum / times.size();
     
@@ -217,11 +207,11 @@ void KeyHandler::showPerformanceStats(const string& filterName, const vector<dou
          << "  Performance range: " << (max_time - min_time) << " us\n\n";
 }
 
-void KeyHandler::generatePerformanceGraph() {
+void KeyHandler::generatePerformanceGraph() {                                                                                   // Generate the performance graph for all filters             
     handleVisualizationRequest("all");
 }
 
-void KeyHandler::handleVisualizationRequest(const string& filterType) {
+void KeyHandler::handleVisualizationRequest(const string& filterType) {                                                         // Handle the visualization request for the filter
     if (performanceData.empty()) {
         cout << "No performance data available. Run tests first with 't' key.\n";
         return;
@@ -243,7 +233,7 @@ void KeyHandler::handleVisualizationRequest(const string& filterType) {
     }
 }
 
-void KeyHandler::handleAllFiltersWithCutLines(const Mat& frame) {
+void KeyHandler::handleAllFiltersWithCutLines(const Mat& frame) {                                                               // Handle all filters with cut lines for the frame
     if (frame.empty()) {
         cerr << "Error: Empty frame provided" << endl;
         return;
@@ -282,9 +272,9 @@ Scalar KeyHandler::getColorForFilter(const string& filterName) {
     return Scalar(0, 0, 0);  // Black (default)
 }
 
-int PerformanceVisualization::getYCoordinate(double value, double maxValue) {
-    // use logarithmic scale
-    double logValue = log10(value + 1);  // +1 to avoid log(0)
-    double logMax = log10(maxValue + 1);
-    return plotConfig.height - 50 - (int)((logValue / logMax) * (plotConfig.height - 100));
-}
+// int PerformanceVisualization::getYCoordinate(double value, double maxValue) {
+//     // use logarithmic scale
+//     double logValue = log10(value + 1);  // +1 to avoid log(0)
+//     double logMax = log10(maxValue + 1);
+//     return plotConfig.height - 50 - (int)((logValue / logMax) * (plotConfig.height - 100));
+// }

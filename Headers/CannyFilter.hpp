@@ -2,6 +2,7 @@
 #define CANNY_FILTER_HPP
 
 #include <opencv2/opencv.hpp>
+#include <iostream>
 
 using namespace cv;
 using namespace std;
@@ -17,6 +18,7 @@ public:
 
     void setThresholds(double t1, double t2);
     Mat applyFilter(const Mat& inputFrame);
+    string windowName = "Greyscale Filter";
 };
 
 #endif // CANNY_FILTER_HPP

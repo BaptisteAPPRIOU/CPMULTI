@@ -1,17 +1,12 @@
 #include "Headers/SobelFilter.hpp"
-#include <iostream>
 
-using namespace cv;
-using namespace std;
-
-SobelFilter::SobelFilter(int dx, int dy, int ksize)
+SobelFilter::SobelFilter(int dx, int dy, int ksize)                                                         // Constructor
     : dx(dx), dy(dy) {
-    // Ensure kernel size is odd and at least 3
     if (ksize % 2 == 0) ksize++;
     kernelSize = max(ksize, 3);
 }
 
-SobelFilter::~SobelFilter() {
+SobelFilter::~SobelFilter() {                                                                               // Destructor              
     #ifdef __APPLE__
         destroyWindow(windowName);
     #endif
@@ -24,7 +19,7 @@ void SobelFilter::setKernelSize(int ksize) {
     kernelSize = max(ksize, 3);
 }
 
-Mat SobelFilter::applyFilter(const Mat& inputFrame) {
+Mat SobelFilter::applyFilter(const Mat& inputFrame) {                                                       // Apply Sobel filter to the input frame by computing gradients in the X and Y directions
     if (inputFrame.empty()) {
         cerr << "Error: Empty input frame provided to SobelFilter." << endl;
         return Mat();

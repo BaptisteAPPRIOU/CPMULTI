@@ -2,10 +2,13 @@
 #define FOURIERFILTER_HPP
 
 #include <opencv2/opencv.hpp>
+#include <opencv2/imgproc.hpp>
+#include <iostream>
 #include <string>
 
 using namespace cv;
 using namespace std;
+
 
 class FourierFilter {
 public:

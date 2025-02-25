@@ -5,6 +5,11 @@
 #include <unordered_map>
 #include "Headers/MultiThreadImageProcessor.hpp"
 #include "Headers/PerformanceVisualization.hpp"
+#include <iostream>
+#include <filesystem>
+#include <thread>
+#include <iomanip>
+#include <numeric>
 
 using namespace cv;
 using namespace std;

@@ -1,21 +1,14 @@
 #include "Headers/FourierFilter.hpp"
-#include <iostream>
-#include <opencv2/imgproc.hpp>
 
-using namespace cv;
-using namespace std;
+FourierFilter::FourierFilter() {}                                                           // Constructor
 
-FourierFilter::FourierFilter() {
-    // No additional initialization needed
-}
-
-FourierFilter::~FourierFilter() {
+FourierFilter::~FourierFilter() {                                                           // Destructor              
     #ifdef __APPLE__
         destroyWindow(windowName);
     #endif
 }
 
-Mat FourierFilter::applyFilter(const Mat& inputFrame) {
+Mat FourierFilter::applyFilter(const Mat& inputFrame) {                                     // Apply Fourier transform to the input frame by converting it to grayscale and displaying the magnitude spectrum
     if (inputFrame.empty()) {
         cerr << "Error: Empty input frame provided to FourierFilter." << endl;
         return Mat();

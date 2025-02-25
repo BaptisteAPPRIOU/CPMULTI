@@ -135,7 +135,7 @@ unordered_map<string, Mat> MultiThreadImageProcessor::applyAllFiltersWithCutLine
         return {};
     }
 
-    vector<string> filters = {"greyscale", "gaussian", "median", "denoising", "canny"};
+    vector<string> filters = {"greyscale", "gaussian", "median", "denoising", "canny" , "sobel"};
     unordered_map<string, Mat> results;
     const int visualThreads = 10; // Use 4 threads for clear visualization
     

@@ -5,6 +5,10 @@
 #include "Headers/MultiThreadImageProcessor.hpp"
 #include "Headers/KeyHandler.hpp"
 #include <string>
+#include <iostream>
+#include <filesystem>
+#include <thread>
+
 using namespace std;
 using namespace cv;
 

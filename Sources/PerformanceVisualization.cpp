@@ -1,6 +1,4 @@
 #include "Headers/PerformanceVisualization.hpp"
-#include <iomanip>
-#include <sstream>
 
 void PerformanceVisualization::plotPerformance(const unordered_map<string, vector<double>>& performanceData) {
 
@@ -265,36 +263,42 @@ void PerformanceVisualization::drawGrid(int plotWidth) {
 void PerformanceVisualization::drawAxes(double maxTime, int plotWidth) {
     // draw the principal axes
     line(plotImage,
-         Point(50, plotConfig.height - 50),
-         Point(50, 50),
-         plotConfig.axisColor,
-         plotConfig.lineThickness);
-    
-    line(plotImage,
-         Point(50, plotConfig.height - 50),
-         Point(plotWidth - 50, plotConfig.height - 50),
-         plotConfig.axisColor,
-         plotConfig.lineThickness);
+        Point(50, plotConfig.height - 50),
+        Point(50, 50),
+        plotConfig.axisColor,
+        plotConfig.lineThickness);
+   
+   line(plotImage,
+        Point(50, plotConfig.height - 50),
+        Point(plotWidth - 50, plotConfig.height - 50),
+        plotConfig.axisColor,
+        plotConfig.lineThickness);
 
-    // Y and X axis labels values (100, 200, 300...)
-    // round the maxTime to the nearest 100000
-    double maxScaleValue = ceil(maxTime / 100000.0) * 100000;
-    int numYLabels = 10;
-    
-    for (int i = 0; i <= numYLabels; i++) {
-        int y = plotConfig.height - 50 - (i * (plotConfig.height - 100) / numYLabels);
-        double value = (maxScaleValue * i) / numYLabels;
-        
-        // only draw the label if it's a multiple of 1000
-        stringstream ss;
-        ss << fixed << setprecision(0) << value / 1000;
-        putText(plotImage, ss.str(),
-               Point(20, y + 5),
-               FONT_HERSHEY_SIMPLEX,
-               plotConfig.fontSize * 0.8,
-               plotConfig.textColor,
-               1);
-    }
+   // Y axis labels values
+   // Round maxTime to a nice round number for better readability
+   double maxScaleValue = ceil(maxTime / 100000.0) * 100000;
+   int numYLabels = 10;
+   
+   for (int i = 0; i <= numYLabels; i++) {
+       // Calculate the y-coordinate for this label
+       int y = plotConfig.height - 50 - (i * (plotConfig.height - 100) / numYLabels);
+       
+       // Calculate the actual value this position represents
+       double value = (maxScaleValue * i) / numYLabels;
+       
+       // Draw a small tick on the y-axis
+       line(plotImage, Point(45, y), Point(50, y), plotConfig.axisColor, 1);
+       
+       // Format and draw the label
+       stringstream ss;
+       ss << fixed << setprecision(0) << value / 1000;
+       putText(plotImage, ss.str(),
+              Point(20, y + 5),
+              FONT_HERSHEY_SIMPLEX,
+              plotConfig.fontSize * 0.8,
+              plotConfig.textColor,
+              1);
+   }
 
     // X axis labels values (1, 2, 3...)
     for (int i = 1; i <= 10; i++) {
@@ -394,4 +398,12 @@ void PerformanceVisualization::drawLegendOutsideGraph(const unordered_map<string
                
         colorIndex++;
     }
+}
+
+int PerformanceVisualization::getYCoordinate(double value, double maxValue) {
+    // Scale to the rounded max value, not the actual max value
+    double maxScaleValue = ceil(maxValue / 100000.0) * 100000;
+    
+    // Map the value to the plot height, with 50 pixels of padding on top and bottom
+    return plotConfig.height - 50 - (value * (plotConfig.height - 100) / maxScaleValue);
 }
