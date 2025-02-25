@@ -10,6 +10,9 @@ This application provides real-time image processing capabilities using OpenCV w
   - Median filter
   - Denoising (Non-local means)
   - Canny edge detection
+  - Sobel edge detection
+  - Fourier filter
+  - Resize and rotate
 
 - **Multi-threading Support:**
   - Configurable number of threads (1-10)
@@ -74,6 +77,10 @@ Run the application:
 | `o` | Apply Median filter |
 | `p` | Apply Denoising filter |
 | `c` | Apply Canny edge detection |
+| `k` | Apply Sobel edge detection |
+| `l` | Apply Fourier transform |
+| `m` | Apply Image resize |
+| `n` | Apply Image rotation |
 | `t` | Run performance tests for all filters |
 | `v` | Visualize all filter performance metrics |
 | `1` | View Grayscale filter performance only |
@@ -81,6 +88,9 @@ Run the application:
 | `3` | View Median filter performance only |
 | `4` | View Denoising filter performance only |
 | `5` | View Canny filter performance only |
+| `6` | View Sobel filter performance only |
+| `7` | View Fourier filter performance only |
+| `8` | View Image rotation performance only |
 | `q` | Quit the application |
 
 ## Performance Analysis
@@ -106,23 +116,29 @@ CPMULTI/
 │   ├── CannyFilter.hpp
 │   ├── DenoisingFilter.hpp
 │   ├── FaceDetection.hpp
+|   |── FourierFilter.hpp
 │   ├── GaussianFilter.hpp
 │   ├── GreyScaleFilter.hpp
 │   ├── KeyHandler.hpp
 │   ├── MedianFilter.hpp
 │   ├── MultiThreadImageProcessor.hpp
 │   ├── PerformanceVisualization.hpp
+│   ├── ResizeRotateFilter.hpp
+│   ├── SobelFilter.hpp
 │   └── WebcamOperations.hpp
 ├── Sources/                # Implementation files
 │   ├── CannyFilter.cpp
 │   ├── DenoisingFilter.cpp
 │   ├── FaceDetection.cpp
+│   ├── FourierFilter.cpp
 │   ├── GaussianFilter.cpp
 │   ├── GreyScaleFilter.cpp
 │   ├── KeyHandler.cpp
 │   ├── MedianFilter.cpp
 │   ├── MultiThreadImageProcessor.cpp
 │   ├── PerformanceVisualization.cpp
+│   ├── ResizeRotateFilter.cpp
+│   ├── SobelFilter.cpp
 │   └── WebcamOperations.cpp
 ├── resources/             # Resource files and saved images
 ├── main.cpp               # Application entry point
