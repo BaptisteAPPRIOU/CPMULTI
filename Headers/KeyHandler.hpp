@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <unordered_map>
 #include "Headers/MultiThreadImageProcessor.hpp"
+#include "Headers/PerformanceVisualization.hpp"
 
 using namespace cv;
 using namespace std;
@@ -19,16 +20,24 @@ public:
 private:
     MultiThreadImageProcessor& imageProcessor;
     string resourcesPath;
+    PerformanceVisualization performanceViz;
+    
+    // Store performance data
+    unordered_map<string, vector<double>> performanceData;
 
     using FilterFunction = string;
-    unordered_map<char, FilterFunction> filterMap; // Map for filter selection
+    unordered_map<char, FilterFunction> filterMap;
 
-    void setupFilterMap(); // Initialize the filter map
-
+    void setupFilterMap();
+    void setupVisualization(const string& filterType = "all");
     void performThreadingTest(const Mat& snapshot, const string& filterName);
     bool processFilter(const Mat& frame, const string& filterName);
     void handleFilterCase(char key, const Mat& frame);
     Mat loadSnapshot(const string& filename);
+    void generatePerformanceGraph();
+    void handleVisualizationRequest(const string& filterType = "all");
+    Scalar getColorForFilter(const string& filterName);
+    void showPerformanceStats(const string& filterName, const vector<double>& times);
 };
 
 #endif // KEY_HANDLER_HPP
