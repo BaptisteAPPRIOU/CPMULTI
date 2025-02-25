@@ -17,7 +17,6 @@ class GreyScaleFilter {
 
   private:
     string windowName = "Greyscale Feed";
-    chrono::microseconds totalTime;
     int frameCount;
 };
 

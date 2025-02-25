@@ -1,6 +1,6 @@
 #include "Headers/GreyScaleFilter.hpp"
 
-GreyScaleFilter::GreyScaleFilter() : totalTime(0), frameCount(0) {                                          // Constructor
+GreyScaleFilter::GreyScaleFilter() {                                          // Constructor
 }
 
 GreyScaleFilter::~GreyScaleFilter() {                                                                        // Destructor                    
