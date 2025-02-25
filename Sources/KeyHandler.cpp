@@ -90,7 +90,7 @@ bool KeyHandler::handleKeyPress(char key, Mat& frame) {                         
     return true;
 }
 
-void KeyHandler::handleFilterCase(const char key, const Mat& frame) {                                                       // Handle the filter case for the key
+void KeyHandler::handleFilterCase(const char key, const Mat& frame) {
     imwrite(resourcesPath + "/snapshot.jpg", frame);
     Mat savedSnapshot = loadSnapshot("snapshot.jpg");
     if (savedSnapshot.empty()) return;
@@ -105,6 +105,9 @@ void KeyHandler::handleFilterCase(const char key, const Mat& frame) {           
             resizeWindow(filterName + " Feed", 800, 600);
             imshow(filterName + " Feed", resultFrame);
             cout << filterName << " processing time (sequential): " << duration << " us" << endl;
+            
+            // Save the filtered image
+            saveFilteredImage(resultFrame, filterName, false);
         }
     } else {
         cerr << "Error: Unknown filter key '" << key << "'" << endl;
@@ -128,6 +131,8 @@ bool KeyHandler::processFilter(const Mat& frame, const string& filterName) {    
         imshow(filterName + " Feed", resultFrame);
         cout << filterName << " processing time with " << imageProcessor.getNumThreads() 
              << " threads: " << duration << " us" << endl;
+
+        saveFilteredImage(resultFrame, filterName, true);
         return true;
     }
     return false;
@@ -173,19 +178,25 @@ void KeyHandler::handleTestCase(const Mat& frame) {                             
 }
 
 
-void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterName) {                                          // Perform threading test for the filter
+void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterName) {
     vector<double>& timings = performanceData[filterName];
     timings.clear();
 
-    for (int threads = 1; threads <= 10; threads++) {                                                                           // Test with different thread counts (1-10)
+    for (int threads = 1; threads <= 10; threads++) {
         imageProcessor.setNumThreads(threads);
         
         const int numTrials = 3;
         double totalDuration = 0;
+        Mat resultFrame;
         
         for (int trial = 0; trial < numTrials; trial++) {
-            auto [_, duration] = imageProcessor.applyFilterTimed(filterName, snapshot);
+            auto [result, duration] = imageProcessor.applyFilterTimed(filterName, snapshot);
             totalDuration += duration;
+            
+            // Keep the last result for saving
+            if (trial == numTrials - 1) {
+                resultFrame = result;
+            }
         }
         
         double avgDuration = totalDuration / numTrials;
@@ -193,7 +204,22 @@ void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterN
         
         cout << filterName << " processing time with " << threads 
              << " threads: " << avgDuration << " us" << endl;
+        
+        // Save only the optimal thread version at the end of the test
+        if (threads == 1) {
+            // Save sequential version
+            saveFilteredImage(resultFrame, filterName, false);
+        } 
     }
+    
+    // Find optimal thread count and save that version
+    auto minElement = min_element(timings.begin(), timings.end());
+    int optimalThreads = distance(timings.begin(), minElement) + 1;
+    
+    // Apply the filter with optimal threads once more and save it
+    imageProcessor.setNumThreads(optimalThreads);
+    auto [optimalResult, _] = imageProcessor.applyFilterTimed(filterName, snapshot);
+    saveFilteredImage(optimalResult, filterName, true);
 
     showPerformanceStats(filterName, timings);
 }
@@ -279,4 +305,23 @@ Scalar KeyHandler::getColorForFilter(const string& filterName) {
     if (filterName == "fourier")   return Scalar(255, 0, 255);  // Magenta
     if (filterName == "resize")    return Scalar(0, 255, 255);  // Cyan
     return Scalar(0, 0, 0);  // Black (default)
+}
+
+// Add this method to KeyHandler.cpp
+void KeyHandler::saveFilteredImage(const Mat& image, const string& filterName, bool isMultiThread) {
+    if (image.empty()) {
+        cerr << "Error: Cannot save empty image." << endl;
+        return;
+    }
+    
+    string suffix = isMultiThread ? "_multithread" : "_sequential";
+    string filename = filterName + suffix + ".jpg";
+    string fullPath = resourcesPath + "/" + filename;
+    
+    // Always replace existing file with the same name
+    if (imwrite(fullPath, image)) {
+        cout << "Filtered image saved as: " << fullPath << endl;
+    } else {
+        cerr << "Error: Unable to save the filtered image." << endl;
+    }
 }

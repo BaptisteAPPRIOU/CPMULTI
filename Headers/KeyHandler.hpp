@@ -21,6 +21,7 @@ public:
     bool handleKeyPress(char key, Mat& frame); // Handle key events
     void handleTestCase(const Mat& frame); // Test all filters with different threads
     void handleAllFiltersWithCutLines(const Mat& frame);
+    void saveFilteredImage(const Mat& image, const string& filterName, bool isMultiThread);
 
 private:
     MultiThreadImageProcessor& imageProcessor;
