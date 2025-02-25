@@ -143,6 +143,16 @@ void KeyHandler::handleTestCase(const Mat& frame) {
     cout << "\nStarting performance tests...\n";
     for (const auto& filterName : filters) {
         cout << "\nTesting " << filterName << " Filter:" << endl;
+        
+        // 🔹 Show each filter result before moving to the next one
+        auto [resultFrame, duration] = imageProcessor.applyFilterTimed(filterName, savedSnapshot);
+        if (!resultFrame.empty()) {
+            namedWindow(filterName + " Feed", WINDOW_NORMAL);
+            resizeWindow(filterName + " Feed", 800, 600);
+            imshow(filterName + " Feed", resultFrame);
+            waitKey(500);  // Keep the window visible for 500ms before continuing
+        }
+        
         performThreadingTest(savedSnapshot, filterName);
     }
 
@@ -157,7 +167,10 @@ void KeyHandler::handleTestCase(const Mat& frame) {
         << "  '6' - Sobel filter only\n"
         << "  '7' - Fourier filter only\n"
         << "  '8' - Rotate filter only\n";
+
+    waitKey(1);  // Ensure OpenCV updates the windows
 }
+
 
 void KeyHandler::performThreadingTest(const Mat& snapshot, const string& filterName) {
     vector<double>& timings = performanceData[filterName];
