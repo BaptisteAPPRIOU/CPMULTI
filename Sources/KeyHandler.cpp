@@ -271,10 +271,3 @@ Scalar KeyHandler::getColorForFilter(const string& filterName) {
     if (filterName == "resize")    return Scalar(0, 255, 255);  // Cyan
     return Scalar(0, 0, 0);  // Black (default)
 }
-
-// int PerformanceVisualization::getYCoordinate(double value, double maxValue) {
-//     // use logarithmic scale
-//     double logValue = log10(value + 1);  // +1 to avoid log(0)
-//     double logMax = log10(maxValue + 1);
-//     return plotConfig.height - 50 - (int)((logValue / logMax) * (plotConfig.height - 100));
-// }
