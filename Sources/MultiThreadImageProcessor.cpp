@@ -184,3 +184,51 @@ unordered_map<string, Mat> MultiThreadImageProcessor::applyAllFiltersWithCutLine
 
     return results;
 }
+
+pair<Mat, double> MultiThreadImageProcessor::sequentialFilter(const string& filterName, const Mat& inputImage) {
+    if (inputImage.empty()) {
+        cerr << "Error: Empty image provided for processing" << endl;
+        return {Mat(), 0};
+    }
+
+    Mat result;
+    auto startTime = chrono::high_resolution_clock::now();
+
+    if (filterName == "greyscale") {
+        GreyScaleFilter greyScaleFilter;
+        result = greyScaleFilter.applyFilter(inputImage);
+    } else if (filterName == "gaussian") {
+        GaussianFilter gaussianFilter(15, 5.0);
+        result = gaussianFilter.applyFilter(inputImage);
+    } else if (filterName == "median") {
+        MedianFilter medianFilter(9);
+        result = medianFilter.applyFilter(inputImage);
+    } else if (filterName == "denoising") {
+        DenoisingFilter denoisingFilter;
+        result = denoisingFilter.applyFilter(inputImage);
+    } else if (filterName == "canny") {
+        CannyFilter cannyFilter(50, 150);
+        result = cannyFilter.applyFilter(inputImage);
+    } else if (filterName == "sobel") {
+        SobelFilter sobelFilter(1, 0, 3);
+        result = sobelFilter.applyFilter(inputImage);
+    } else if (filterName == "fourier") {
+        FourierFilter fourierFilter;
+        result = fourierFilter.applyFilter(inputImage);
+    } else if (filterName == "resize") {
+        ResizeRotateFilter resizeFilter(0.5, 0.0);
+        result = resizeFilter.applyFilter(inputImage);
+    } else if (filterName == "rotate") {
+        ResizeRotateFilter rotateFilter(1.0, 180.0);
+        result = rotateFilter.applyFilter(inputImage);
+    } else {
+        cerr << "Error: Unknown filter name '" << filterName << "'" << endl;
+        return {Mat(), 0};
+    }
+
+    auto stopTime = chrono::high_resolution_clock::now();
+    double duration = chrono::duration_cast<chrono::microseconds>(stopTime - startTime).count();
+
+    return {result, duration};
+}
+

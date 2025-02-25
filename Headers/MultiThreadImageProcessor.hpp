@@ -24,6 +24,7 @@ public:
     Mat applyFilter(const string& filterName, const Mat& inputImage);
     pair<Mat, double> applyFilterTimed(const string& filterName, const Mat& inputImage);
     unordered_map<string, Mat> applyAllFiltersWithCutLines(const Mat& inputImage);
+    pair<Mat, double> sequentialFilter(const string& filterName, const Mat& inputImage);
 
     void setNumThreads(int numThreads);
     int getNumThreads() const;

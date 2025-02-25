@@ -1,6 +1,6 @@
 #include "Headers/WebcamOperations.hpp"
 
-WebcamOperations::WebcamOperations() : imageProcessor(4) , keyHandler(imageProcessor, resourcesPath) {                              // Constructor
+WebcamOperations::WebcamOperations() : imageProcessor(1) , keyHandler(imageProcessor, resourcesPath) {                              // Constructor
     cout << "WebCamOperations initialized." << endl;
 }
 
